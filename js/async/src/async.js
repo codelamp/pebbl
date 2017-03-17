@@ -10,11 +10,13 @@ var Q=Q; if ( !Q ) throw new Error('async requires q.js');
  * Load scripts in the best way ;)
  */
 var async = function(){
-  async._log = function(){
-    var args = Array.prototype.slice.call(arguments);
-    args.unshift('async', '--');
-    return console.log.apply(console, args);
-  };
+  if ( String(window.location).indexOf('debug') != -1 ) {
+    async.log = function(){
+      var args = Array.prototype.slice.call(arguments);
+      args.unshift('async', '--');
+      return console.log.apply(console, args);
+    };
+  }
   if ( arguments[0] && arguments[0].substr ) {
     return async.def.apply(this, arguments);
   }

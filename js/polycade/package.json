@@ -4,7 +4,10 @@
   "description": "A wrapper for Phaser that introduces polygon hit testing for arcade physics",
   "main": "gulpfile.js",
   "dependencies": {
-    "jqlite": "^0.2.41"
+    "jqlite": "^0.2.41",
+    "phaser": "^2.6.2",
+    "polyk": "^0.24.0",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "gulp": "^3.9.1",

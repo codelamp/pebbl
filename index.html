@@ -16,11 +16,6 @@
 <script type="text/javascript" src="js/async/build/async.js" charset="utf-8"></script>
 <script>
 async.registry({
-  'jq':         { path: 'js/polycade/node_modules/jqlite/jqlite.js', resolve: function(){ return jqlite; } },
-  'underscore': { path: 'js/vendor/underscore.js',                   resolve: function(){ return _; } },
-  'Phaser':     { path: 'js/vendor/phaser-ce/build/phaser.min.js',   resolve: function(){ return Phaser; } },
-  'PolyK':      { path: 'js/vendor/polyk.js',                        resolve: function(){ return PolyK; } },
-  'Q':          { resolve: function(){ return async.Q; } },
   'theory': {
     path: 'js/theory/src/theory._.js',
     base: 'js/theory/src/',
@@ -28,7 +23,7 @@ async.registry({
   },
   'polycade': {
     path: 'js/polycade/src/polycade._.js',
-    base: 'js/polycade/src/',
+    base: 'js/polycade/',
     asynced: true
   },
   'game': {

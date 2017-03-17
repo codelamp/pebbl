@@ -3,12 +3,20 @@ var polycade = polycade || {};
 (function(){
 
   async.registry('polycade', {
-    'polycade.events':           { file: 'polycade.events.js', asynced: true },
-    'polycade.layers':           { file: 'polycade.layers.js', asynced: true },
-    'polycade.assets':           { file: 'polycade.assets.js', asynced: true },
-    'polycade.game':             { file: 'polycade.game.js',   asynced: true },
-    'polycade.adornment':        { file: 'polycade.adornment.js', asynced: true },
-    'polycade.imagination.body': { file: 'polycade.imagination.body.js', asynced: true }
+    // vendor
+    'jq':                        { file: 'node_modules/jqlite/jqlite.js',             resolve: function(){ return jqlite; } },
+    'underscore':                { file: 'node_modules/underscore/underscore-min.js', resolve: function(){ return _; } },
+    'Phaser':                    { file: 'node_modules/phaser/build/phaser.min.js',   resolve: function(){ return Phaser; } },
+    'PolyK':                     { file: 'node_modules/polyk/dist/polyk.min.js',      resolve: function(){ return PolyK; } },
+    'Q':                         { resolve: function(){ return async.Q; } },
+    // polycade managers
+    'polycade.events':           { file: 'src/managers/polycade.events.js', asynced: true },
+    'polycade.layers':           { file: 'src/managers/polycade.layers.js', asynced: true },
+    'polycade.assets':           { file: 'src/managers/polycade.assets.js', asynced: true },
+    // polycade core
+    'polycade.game':             { file: 'src/polycade.game.js',   asynced: true },
+    'polycade.adornment':        { file: 'src/polycade.adornment.js', asynced: true },
+    'polycade.imagination.body': { file: 'src/polycade.imagination.body.js', asynced: true }
   });
 
   var includes = ['jq', 'theory', 'Phaser'];

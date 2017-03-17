@@ -1,0 +1,11 @@
+{
+  "name": "pebbl",
+  "version": "0.0.4",
+  "description": "Pebbl - the game, not the pocket-sized volcano bits.",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Phil Glanville"
+}
