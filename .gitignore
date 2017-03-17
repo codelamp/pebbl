@@ -1,3 +1,9 @@
+# Vendor
+js/vendor/*
+
+# Mac
+.DS_Store
+
 # Logs
 logs
 *.log

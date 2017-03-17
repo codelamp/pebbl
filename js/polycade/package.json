@@ -1,0 +1,19 @@
+{
+  "name": "polycade",
+  "version": "0.0.1",
+  "description": "A wrapper for Phaser that introduces polygon hit testing for arcade physics",
+  "main": "gulpfile.js",
+  "dependencies": {
+    "jqlite": "^0.2.41"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-minify": "^0.0.15",
+    "gulp-concat": "^2.6.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Phil Glanville",
+  "license": "ISC"
+}
