@@ -25,10 +25,11 @@ var game;
     game = {
       init: function(){
         var g = polycade.game.create({
-          initialScreen: 'testbed'
+          initialScreen: 'testbed',
+          container: 'body'
         });
         g.events.on('test', function(){
-          alert(12312321);
+          console.log(12312321);
         });
         g.events.trigger('test');
       }

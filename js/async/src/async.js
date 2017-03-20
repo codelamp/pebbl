@@ -12,8 +12,6 @@
  *        the resolve function. You can still use thens that will trigger once
  *        everything is resolved. This would be good to fix, if possible.
  */
-// requireJS/AMD fallback to avoid non-existence warnings
-var module = module || {}; module.exports = module.exports || {};
 /**
  * Load scripts in the way that isn't synchronous
  */
@@ -30,7 +28,7 @@ String(window.location).indexOf('debug') != -1 && (async.log = function(){
 // a useful temporary object
 async.tmp = {};
 // reference the Promise handler, native or q-lite
-async.promiser = Promise || Q;
+async.promiser = Q || Promise || Q;
 /**
  * Adds new registry definitions for async to use. This code can be called
  * in two ways. First global definitions:
@@ -277,6 +275,7 @@ async.def = function(name){
   async.log && async.log('async.def', stored.def, 'queue created from', stored.list.length, 'dependencies', stored.names, stored.list);
   // create the queue
   stored.q = async.promiser.all(stored.list);
+  //console.log('>>>', stored.def, stored.q, stored.list);
   // add spreads if we have them
   for ( i=0, l=stored.thens.length; (i<l) && (item=stored.thens[i]); i++ ) {
     // spread each resolved item to an argument in the completion handler
@@ -287,6 +286,7 @@ async.def = function(name){
   // if there may have been dependencies, handle triggering the resolution of them
   // resolve the dependency chain for definintion
   stored.q = stored.q.then(function(){
+    console.log(stored.def, 'HERE!!!', stored.dependencies);
     if ( stored.dependencies ) {
       if ( async.log ) {
         var log = {};
@@ -390,6 +390,7 @@ async.addScript = function(name, data){
       else if ( stored.asynced ) {
         async.log && async.log('waiting for dependencies for', name);
         stored.dependencies = { deferred: async.defer() };
+        console.log(name, stored.dependencies.deferred, stored.dependencies.deferred.resolve);
         return stored.dependencies.deferred;
       }
       else {
@@ -549,6 +550,7 @@ async.load = function(url){
       (document.documentElement||document.body).appendChild(script);
       //document.getElementsByTagName("head")[0]
       async.log && async.log('injected script tag for', url);
+      return null;
     };
   });
   loader.resolve = resolver;

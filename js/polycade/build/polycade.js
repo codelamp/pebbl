@@ -1,50 +1,59 @@
 /**
  * The trigger manager for polycade
  */
-async('polycade.adornment', ['jq', 'Phaser', 'theory'], function($, Phaser, theory){
+async('polycade.entities.base', ['jq', 'Phaser', 'theory'], function($, Phaser, theory){
 
   var polycade = async.ref('polycade', {});
       polycade.entities = polycade.entites || {};
-  var local = polycade.entities.adornment || {};
+  var base = polycade.entities.base || {};
 
   /**
    * adornment entity
    */
-  polycade.entities.adornment = theory.base.mix(local, {
+  polycade.entities.base = theory.base.mix(base, {
 
     prep: function( options ){
 
       var sprite, body, ibody, u = undefined;
 
       this.options = options;
-      this.game = this.options.game;
-      this.world = this.options.world || null;
       this.vars = {};
-      if ( (sprite=this.options.sprite) ) {
-        this.sprite = this.game.add.sprite(
+      
+      sprite = this.options.sprite;
+      body = this.options.body;
+      ibody = this.options.ibody;
+      
+      if ( sprite ) {
+        this.sprite = this.phaser.add.sprite(
           this.options.sprite.position.x,
           this.options.sprite.position.y,
           this.options.sprite.source
         );
         this.position = this.sprite.position;
-        (sprite.anchor !== u)             && (this.sprite.anchor=sprite.anchor);
-        (sprite.blendMode !== u)          && (this.sprite.blendMode=sprite.blendMode);
-        if ( (body=this.options.body) ) {
-          this.game.physics.enable(this.sprite, Phaser.Physics.ARCADE);
-          (body.collideWorldBounds !== u) && (this.sprite.body.collideWorldBounds=body.collideWorldBounds);
-          (body.allowGravity !== u)       && (this.sprite.body.allowGravity=body.allowGravity);
-          (body.immovable !== u)          && (this.sprite.body.immovable=body.immovable);
+        (sprite.anchor !== u)             && (this.sprite.anchor = sprite.anchor);
+        (sprite.blendMode !== u)          && (this.sprite.blendMode = sprite.blendMode);
+        if ( body ) {
+          this.phaser.physics.enable(this.sprite, Phaser.Physics.ARCADE);
+          (body.collideWorldBounds !== u) && (this.sprite.body.collideWorldBounds = body.collideWorldBounds);
+          (body.allowGravity !== u)       && (this.sprite.body.allowGravity = body.allowGravity);
+          (body.immovable !== u)          && (this.sprite.body.immovable = body.immovable);
         }
-        if ( (ibody=this.options.ibody) ) {
+        if ( ibody ) {
           ibody = _.clone(ibody);
           ibody.owner = this;
           this.sprite.ibody = polycade.imagination.body.create(ibody);
         }
       }
-      this.options.add    && this.on('add', this.options.add);
-      this.options.update && this.on('update', this.options.update);
-      this.options.resize && this.on('resize', this.options.resize);
-      this.trigger('add');
+      
+      if ( options.events ) {
+        for ( var key in options.events ) {
+          this.sprite.events[key] && this.sprite.events[key].add(options.events[key]);
+        }
+      }
+      
+      //this.options.add    && this.on('add', this.options.add);
+      //this.options.update && this.on('update', this.options.update);
+      //this.options.resize && this.on('resize', this.options.resize);
     
     },
 
@@ -63,38 +72,204 @@ async('polycade.adornment', ['jq', 'Phaser', 'theory'], function($, Phaser, theo
         return this.sprite.ibody.collide( sprite );
       }
       else if ( this.sprite ) {
-        return this.game.physics.arcade.collide(sprite, this.sprite);
+        return this.phaser.physics.arcade.collide(sprite, this.sprite);
       }
     }
 
   });
 
-  return local;
+  return base;
+  
+});
+/**
+ * The trigger manager for polycade
+ */
+async('polycade.entities.adornment', ['jq', 'Phaser', 'theory'], function($, Phaser, theory){
+
+  var polycade = async.ref('polycade', {});
+      polycade.entities = polycade.entites || {};
+  var adornment = polycade.entities.adornment || {};
+
+  /**
+   * adornment entity
+   */
+  polycade.entities.adornment = theory.base.mix(adornment, {
+
+    prep: function( options ){
+
+    },
+
+    update: function(){
+
+    },
+
+    /**
+     * Check collision, handling with either default Phaser or an ibody
+     */
+    collide: function( sprite ){
+
+    }
+
+  });
+
+  return adornment;
   
 });
 /**
  * The polycade game handler
  */
-async.tmp.includes = ['underscore', 'jq', 'theory', 'Phaser'];
-async.tmp.managers = ['polycade.events', 'polycade.layers', 'polycade.assets'];
-async('polycade.game', async.tmp.includes, async.tmp.managers, function(_, $, theory, Phaser){
+async.tmp.includes = ['underscore', 'jq', 'theory', 'Phaser', 'verge'];
+async.tmp.managers = ['polycade.events', 'polycade.layers', 'polycade.assets', 'polycade.entities.base'];
+async('polycade.game', async.tmp.includes, async.tmp.managers, function(_, $, t, Phaser, v){
 
   var polycade = async.ref('polycade', {}), local = polycade.game || {};
 
   /**
    * The game handler for polycade
    */
-  polycade.game = theory.base.mix(local, {
+  polycade.game = t.base.mix(local, {
 
     name: 'polycade.game',
 
-    prep: function(){
+    prep: function(options){
+      this.options = options;
+      
+      this.viewport = { element: window };
+      this.viewport.width = v.viewportW();
+      this.viewport.height = v.viewportH();
+      this.viewport.ratio = this.viewport.width / this.viewport.height;
+      
+      this.viewport.element.addEventListener('resize', function(){
+        console.log('resize');
+      });
+      
       this.events = polycade.manager('events').namespace('polycade').create();
       this.layers = polycade.manager('layers').namespace('polycade').create();
       this.assets = polycade.manager('assets').namespace('polycade').create();
+      
+      this.entities = {};
+      this.entities.base = polycade.entities.base.namespace('polycade.game');
+      
+      this.handlers = t.bindCollection(this.handlers);
+      this.phaserHandlers = t.bindCollection(this.phaserHandlers);
+      
+      this.i = {};
+      this.i.container = $(this.options.container);
+      
+      // shared object
+      this.phaser = new Phaser.Game(100, 100, Phaser.AUTO, this.i.container[0], this.phaserHandlers, true);
+      
       return this;
-    }
+    },
+    
+    handlers: {
+      
+      resize: function(){
+        this.viewport.width = this.viewport.element.width();
+        this.viewport.height = this.viewport.element.height();
+        this.viewport.ratio = this.viewport.width / this.viewport.height;
+        this.phaser.scale.setGameSize(this.viewport.width, this.viewport.height);
+        this.phaser.world.setBounds(
+          0,0,
+          Math.max(this.viewport.width, this.dims.width),
+          Math.min(this.viewport.height, this.dims.height)
+        );
+        //this.options.cameraTarget && this.game.camera.follow( this.options.cameraTarget.sprite, Phaser.Camera.FOLLOW_PLATFORMER );
+      }
+      
+    },
+    
+    phaserHandlers: {
+    
+      preloads: function(){
+        this.phaser.load.image('pic', 'assets/backgrounds/world-a/mountain-a.png');
+        this.phaser.load.image('plant', 'assets/entities/plant-a.png');
+        this.phaser.load.image('sky', 'assets/backgrounds/world-a/sky.jpg');
+        this.phaser.load.image('shadow', 'assets/effects/round-shadow.png');
+        //this.phaser.load.json('pebble-a', pebbl.assets['entities.pebble-a'].ibody);
+      },
+      
+      creates: function(){
+        
+        this.entities.base.game = this;
+        this.entities.base.phaser = this.phaser;
+        
+        /// start the simple physics ball rolling
+        this.phaser.physics.startSystem(Phaser.Physics.ARCADE);
+        /// create the background sky
+        this.bg = this.phaser.add.sprite(0,0, 'sky');
+        this.bg.anchor = {x:0.5, y:0};
+        this.bg.fixedToCamera = false;
+        
+        this.plant = this.entities.base.create({
+          sprite: {
+            source: 'plant',
+            position: { x:300, y:300 },
+            anchor: { x:0.5, y:1 }
+          },
+          body: {
+            collideWorldBounds: false,
+            immovable: true,
+            allowGravity: false
+          },
+          _ibody: {
+            container: this.imagination,
+            source: 'plant',
+            debug: true
+          },
+          events: {
+            onAddedToGroup: function(){
+              this.shadow = this.phaser.add.sprite(0,0, 'shadow');
+              this.shadow.anchor = { x:0.4, y:0.5 };
+              this.shadow.alpha = 0.2;
+              this.shadow.scale.x = 0.3;
+              this.shadow.scale.y = 0.2;
+              this.shadow.baseAlpha = 0.3;
+              this.sprite.bringToTop();
+            },
+            resize: function(){
+              //this.position.x = this.phaser.world.bounds.width * 0.85;
+              //this.position.y = world.globe.nearestPoint(this.position.x, 0).y + 4;
+              this.shadow.position.x = this.position.x;
+              this.shadow.position.y = this.position.y;
+              //this.update();
+            }
+          }
+        });
+        
+        /*
+        //  Create a BitmapData
+        var bmd = this.phaser.make.bitmapData(320, 256);
 
+        //  Draw an image to it
+        bmd.copy('pic');
+
+        //  Draw a few random shapes to it
+        bmd.circle(100, 100, 32, 'rgba(255,0,0,0.8)');
+        //bmd.rect(110, 40, 64, 120, 'rgba(255,0,255,0.8)');
+
+        //  Here the sprite uses the BitmapData as a texture
+        this.sprite = this.phaser.add.sprite(300, 300, bmd);
+
+        this.sprite.anchor.set(0.5);
+        */
+      },
+      
+      updates: function(){
+        //this.sprite.rotation += 0.01;
+      },
+      
+      renders: function(){
+        
+      },
+      
+      resize: function(){
+        console.log(this);
+      }
+      
+    }
+    
+  
     /*
     prep: function(){
 
@@ -165,35 +340,39 @@ async('polycade.imagination.body', ['jq', 'Phaser', 'theory', 'PolyK'], function
 async.registry('polycade', {
   src: {
     // vendor
-    'jq':                        { file: 'node_modules/jqlite/jqlite.js',             resolve: function(){ return jqlite; } },
-    'underscore':                { file: 'node_modules/underscore/underscore-min.js', resolve: function(){ return _; } },
-    'Phaser':                    { file: 'node_modules/phaser/build/phaser.min.js',   resolve: function(){ return Phaser; } },
-    'PolyK':                     { file: 'vendor/polyk/polyk.js',                     resolve: function(){ return PolyK; } },
-    'q':                         { resolve: function(){ return async.promiser; } },
+    'jq':                          { file: 'node_modules/jqlite/jqlite.js',             resolve: function(){ return jqlite; } },
+    'underscore':                  { file: 'node_modules/underscore/underscore-min.js', resolve: function(){ return _; } },
+    'Phaser':                      { file: 'node_modules/phaser/build/phaser.min.js',   resolve: function(){ return Phaser; } },
+    'PolyK':                       { file: 'vendor/polyk/polyk.js',                     resolve: function(){ return PolyK; } },
+    'verge':                       { file: 'vendor/verge/verge.min.js',                 resolve: function(){ return verge; } },
+    'q':                           { resolve: function(){ return async.promiser; } },
     // polycade managers
-    'polycade.events':           { file: 'src/managers/polycade.events.js', asynced: true },
-    'polycade.layers':           { file: 'src/managers/polycade.layers.js', asynced: true },
-    'polycade.assets':           { file: 'src/managers/polycade.assets.js', asynced: true },
+    'polycade.events':             { file: 'src/managers/polycade.events.js', asynced: true },
+    'polycade.layers':             { file: 'src/managers/polycade.layers.js', asynced: true },
+    'polycade.assets':             { file: 'src/managers/polycade.assets.js', asynced: true },
     // polycade core
-    'polycade.game':             { file: 'src/polycade.game.js',   asynced: true },
-    'polycade.adornment':        { file: 'src/polycade.adornment.js', asynced: true },
-    'polycade.imagination.body': { file: 'src/polycade.imagination.body.js', asynced: true }
+    'polycade.game':               { file: 'src/polycade.game.js',   asynced: true },
+    'polycade.entities.base':      { file: 'src/polycade.entities.base.js', asynced: true },
+    'polycade.entities.adornment': { file: 'src/polycade.entities.adornment.js', asynced: true },
+    'polycade.imagination.body':   { file: 'src/polycade.imagination.body.js', asynced: true }
   },
   build: {
     // vendor
-    'jq':                        { file: 'node_modules/jqlite/jqlite.min.js',         resolve: function(){ return jqlite; } },
-    'underscore':                { file: 'node_modules/underscore/underscore-min.js', resolve: function(){ return _; } },
-    'Phaser':                    { file: 'node_modules/phaser/build/phaser.min.js',   resolve: function(){ return Phaser; } },
-    'PolyK':                     { file: 'vendor/polyk/polyk.js',                     resolve: function(){ return PolyK; } },
-    'q':                         { resolve: function(){ return async.promiser; } },
+    'jq':                          { file: 'node_modules/jqlite/jqlite.min.js',         resolve: function(){ return jqlite; } },
+    'underscore':                  { file: 'node_modules/underscore/underscore-min.js', resolve: function(){ return _; } },
+    'Phaser':                      { file: 'node_modules/phaser/build/phaser.min.js',   resolve: function(){ return Phaser; } },
+    'PolyK':                       { file: 'vendor/polyk/polyk.js',                     resolve: function(){ return PolyK; } },
+    'verge':                       { file: 'vendor/verge/verge.min.js',                 resolve: function(){ return verge; } },
+    'q':                           { resolve: function(){ return async.promiser; } },
     // polycade managers
-    'polycade.events':           { asynced: true },
-    'polycade.layers':           { asynced: true },
-    'polycade.assets':           { asynced: true },
+    'polycade.events':             { asynced: true },
+    'polycade.layers':             { asynced: true },
+    'polycade.assets':             { asynced: true },
     // polycade core
-    'polycade.game':             { asynced: true },
-    'polycade.adornment':        { asynced: true },
-    'polycade.imagination.body': { asynced: true },
+    'polycade.game':               { asynced: true },
+    'polycade.entities.base':      { asynced: true },
+    'polycade.entities.adornment': { asynced: true },
+    'polycade.imagination.body':   { asynced: true },
   }
 });
 
