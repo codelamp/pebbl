@@ -11,7 +11,7 @@ async('theory.plugins.transform', ['theory'], function(theory){
     create: function(){
       return this.prep.apply(Object.create(this), arguments);
     },
-  
+
     prep: function(){
       this.reset();
       return this;
@@ -54,11 +54,11 @@ async('theory.plugins.transform', ['theory'], function(theory){
       this.m[5] = m5;
       return this;
     },
-  
+
     rotate: function(deg){
       return this.rotateRad(Math.PI/180 * deg);
     },
-  
+
     rotateRad: function(rad) {
       var c = Math.cos(rad);
       var s = Math.sin(rad);
@@ -95,7 +95,7 @@ async('theory.plugins.transform', ['theory'], function(theory){
       py = x * this.m[1] + y * this.m[3] + this.m[5];
       return as === 'array' ? [px, py] : {x: px, y: py};
     }
-  
+
   };
-  
+
 });

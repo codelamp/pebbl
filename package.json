@@ -5,6 +5,7 @@
   "dependencies": {},
   "devDependencies": {},
   "scripts": {
+    "build": "(cd js/async && npm run build); (cd js/theory && npm run build); (cd js/polycade && npm run build);",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Phil Glanville"

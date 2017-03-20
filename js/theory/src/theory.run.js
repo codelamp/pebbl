@@ -8,14 +8,14 @@ async('theory.run', ['theory.is'], function(is){
    * Tell other code to run at different other times
    */
   var run = {
-  
+
     internal: {
       cancel: function(){
         delete this.cancel;
         clearTimeout(0 + this);
       }
     },
-  
+
     later: function( method, delay, context, args ){
       if ( !is.number(delay) ) {
         args = context;
@@ -28,9 +28,9 @@ async('theory.run', ['theory.is'], function(is){
       tid.cancel = theory.bind(run.internal.cancel, tid);
       return tid;
     }
-  
+
   };
-  
+
   return run;
-  
+
 });

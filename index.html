@@ -13,27 +13,51 @@
 <body>
 <div id="log"></div>
 <div id="talkies"></div>
-<script type="text/javascript" src="js/async/build/async.js" charset="utf-8"></script>
+<script type="text/javascript" src="js/async/build/async-min.js" charset="utf-8"></script>
 <script>
-async.registry({
-  'theory': {
-    path: 'js/theory/src/theory._.js',
-    base: 'js/theory/src/',
-    asynced: true
-  },
-  'polycade': {
-    path: 'js/polycade/src/polycade._.js',
-    base: 'js/polycade/',
-    asynced: true
-  },
-  'game': {
-    path: 'js/game.js',
-    asynced: true
-  }
-});
-
+if ( String(window.location).indexOf('prod') != -1 ) {
+  async.registry({
+    'theory': {
+      use: 'build',
+      path: 'js/theory/build/theory-min.js',
+      base: 'js/theory/',
+      asynced: true
+    },
+    'polycade': {
+      use: 'build',
+      path: 'js/polycade/build/polycade-min.js',
+      base: 'js/polycade/',
+      asynced: true
+    },
+    'game': {
+      path: 'js/game.js',
+      asynced: true
+    }
+  });
+}
+else {
+  async.registry({
+    'theory': {
+      use: 'src',
+      path: 'js/theory/src/theory._.js',
+      base: 'js/theory/',
+      asynced: true
+    },
+    'polycade': {
+      use: 'src',
+      path: 'js/polycade/src/polycade._.js',
+      base: 'js/polycade/',
+      asynced: true
+    },
+    'game': {
+      path: 'js/game.js',
+      asynced: true
+    }
+  });
+}
 async('init', ['game'])
   .spread(function(game){
+    console.log(arguments);
     console.log('GAME HAS FULLY LOADED!');
     game.init();
   })

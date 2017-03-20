@@ -187,7 +187,7 @@ async('theory.plugins.overload', ['theory', 'theory.is'], function(theory, is){
     }
     return newfixes || [];
   };
- 
+
   /**
    * Split an overload key into its constituent parts
    *
@@ -214,7 +214,7 @@ async('theory.plugins.overload', ['theory', 'theory.is'], function(theory, is){
       return items;
     }
   });
- 
+
   /**
    * Combine any keys passed in, together.
    *
@@ -229,7 +229,7 @@ async('theory.plugins.overload', ['theory', 'theory.is'], function(theory, is){
   theory.overload.extendKey = function(){
     return '[' + Array.prototype.slice.call(arguments, 0).join(', ') + ']';
   };
- 
+
   /**
    * Used to call a described overload method, supports string references.
    *
@@ -247,12 +247,12 @@ async('theory.plugins.overload', ['theory', 'theory.is'], function(theory, is){
     }
     throw new Error('Overload failed to call ' + item);
   };
- 
+
   /**
-   * Overload description processors allow the overload behaviour to 
+   * Overload description processors allow the overload behaviour to
    * be extended.
-   * 
-   * These should make changes to the description object before being 
+   *
+   * These should make changes to the description object before being
    * handed to the item processors.
    *
    * You can add your own processor by .push()-ing a method to this
@@ -262,14 +262,14 @@ async('theory.plugins.overload', ['theory', 'theory.is'], function(theory, is){
    *
    *  - `desc` is the entire description object
    *  - `internal` is a provided storage object, per description but separate from description
-   * 
+   *
    * > It should be noted that the order of processors can change expected outcomes. Shift the orders only if you know what you are doing.
    *
    * @memberof! theory.overload
    * @namespace
    */
   theory.overload.descProcessors = new Array();
- 
+
   /**
    * Inline names allows for a more succint way of naming params.
    *
@@ -314,14 +314,14 @@ async('theory.plugins.overload', ['theory', 'theory.is'], function(theory, is){
       }
     };
   });
- 
+
   /**
    * translateToArgsObject allows methods defined to receive
-   * an args object with named attributes, instead of a list 
+   * an args object with named attributes, instead of a list
    * of params.
    *
    * For example:
-   * 
+   *
    *     var test = t.overload({
    *       '[array, callable] > [list, callback]': function(args){
    *         console.log(args)
@@ -365,7 +365,7 @@ async('theory.plugins.overload', ['theory', 'theory.is'], function(theory, is){
       }
     };
   })
- 
+
   /**
    * Alternative Keys gives support for the following key notation:
    *
@@ -398,7 +398,7 @@ async('theory.plugins.overload', ['theory', 'theory.is'], function(theory, is){
       }
     }
   };
- 
+
   /**
    * Optional Arguments gives support for the following key notation:
    *
@@ -436,7 +436,7 @@ async('theory.plugins.overload', ['theory', 'theory.is'], function(theory, is){
       }
     };
   });
- 
+
   /// add these to the processor list
   (function(list, processors){
     list.push(processors.inlineNames);
@@ -444,12 +444,12 @@ async('theory.plugins.overload', ['theory', 'theory.is'], function(theory, is){
     list.push(processors.optionalArguments);
     list.push(processors.alternativeKeys); /// <-- this needs to occur last as it doesn't play well before others.
   })(t.overload.descProcessors, t.overload.descProcessors);
- 
+
   /*
    * Overload item processors allow the overload behaviour to be extended.
    * Item processors are applied after description processors, and should
    * concern themselves with modifying the item in question. Any modifications
-   * to the description object itself i.e. adding more items, may cause 
+   * to the description object itself i.e. adding more items, may cause
    * unexpected side-effects.
    *
    * You can add your own processor by .push()-ing a method to this

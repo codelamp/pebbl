@@ -48,7 +48,7 @@ async('theory.plugins.navigate', ['theory', 'theory.is'], function(theory, is){
        * @namespace
        */
       i: {
-        
+
         /**
          * The internal method used to detect if a `target` has children.
          * This can be overridden on a per-instance basis using `.configuration()`
@@ -62,7 +62,7 @@ async('theory.plugins.navigate', ['theory', 'theory.is'], function(theory, is){
           }
           return false;
         },
-        
+
         /**
          * The internal method used to return the children of a `target`, with a possible applied filter.
          *
@@ -72,11 +72,11 @@ async('theory.plugins.navigate', ['theory', 'theory.is'], function(theory, is){
         children: function(target, filter){
           return (is.literalObject(target) && Object.values(target, filter)) || [];
         },
-        
+
         hasParent: function(target){
           return !!(target && target.parent);
         },
-        
+
         parent: function(target, filter){
           if ( target.parent ) {
             if ( target.parent.call ) {
@@ -88,16 +88,16 @@ async('theory.plugins.navigate', ['theory', 'theory.is'], function(theory, is){
           }
           return [];
         },
-        
+
         needsResolving: function(target){
           return false;
         },
-        
+
         resolve: function(target){
           /// @TODO: theory needs to utilise Promises
           return t.promise().resolve(target);
         }
-        
+
       },
 
       /**

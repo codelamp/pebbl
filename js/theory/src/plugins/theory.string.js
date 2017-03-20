@@ -1,5 +1,5 @@
 async('theory.plugins.events', ['theory'], function(theory){
-  
+
   var t = theory = theory || {}; theory.plugins = theory.plugins || {};
 
   /**
@@ -44,7 +44,7 @@ async('theory.plugins.events', ['theory'], function(theory){
   });
 
   /**
-   * Theory's string system -- mainly used for parsing strings with 
+   * Theory's string system -- mainly used for parsing strings with
    * instruction sets i.e. parsers described by objects.
    *
    * @memberof! theory
@@ -53,7 +53,7 @@ async('theory.plugins.events', ['theory'], function(theory){
   theory.plugins.string = (function(mixin){
 
     var local = theory.base.mix(mixin || {}, {
-  
+
       theory: {
         prep: function(desc){
           desc.instructions.processGroup = desc.instructions.processGroup.bind(desc);
@@ -61,12 +61,12 @@ async('theory.plugins.events', ['theory'], function(theory){
           return desc;
         }
       },
-  
+
       /**
-       * A collection of properties that are shared (i.e. same reference) across 
+       * A collection of properties that are shared (i.e. same reference) across
        * {@linkcode theory.string} instances.
        *
-       * By default, all methods are shared between instances, unless specifically 
+       * By default, all methods are shared between instances, unless specifically
        * added to {@linkcode theory.string.i}
        *
        * @memberof! theory.string
@@ -77,7 +77,7 @@ async('theory.plugins.events', ['theory'], function(theory){
          * Used to store the instruction sets used by {@linkcode theory.string} and
          * {@linkcode theory.string.parse}.
          *
-         * This object shouldn't be used directly, instead use the 
+         * This object shouldn't be used directly, instead use the
          * {@linkcode theory.string.instructions} method.
          *
          * @member {object} instructions
@@ -85,18 +85,18 @@ async('theory.plugins.events', ['theory'], function(theory){
          */
         instructions: {}
       },
-  
+
       /**
-       * A collection of properties and methods that are unique references 
+       * A collection of properties and methods that are unique references
        * per each {@linkcode theory.string} instance.
        *
        * @memberof! theory.string
        * @namespace
        */
       i: {},
-  
+
       /*
-       * 
+       *
        */
       prep: function(source, config){
         this.source = source;
@@ -104,10 +104,10 @@ async('theory.plugins.events', ['theory'], function(theory){
         this.i = Object.create(this.i);
         return this;
       },
-  
+
       /**
        * Parse a string based on a set of instructions.
-       * 
+       *
        * @memberof! theory.string
        * @method
        * @param {string} name - The lookup name used to find the instruction set.
@@ -126,7 +126,7 @@ async('theory.plugins.events', ['theory'], function(theory){
           throw new Error('unknown instruction set ' + name);
         }
       },
-  
+
       /**
        * Responsible for handling all of the instruction sets for {@linkcode theory.string t.string}
        *
@@ -136,7 +136,7 @@ async('theory.plugins.events', ['theory'], function(theory){
        * @namespace
        */
       instructions: t.method({
-    
+
         /**
          * Get a named instruction set, that has been previously defined.
          *
@@ -167,13 +167,13 @@ async('theory.plugins.events', ['theory'], function(theory){
           /**
            * The parser works by logically following an object list of instructions, which in turn
            * have sub instructions that can loop back to other instructions.
-           * 
+           *
            * @memberof! theory.string.instructions
            * @method
            * @param {object}        instructions - the overaching set of instructions
            * @param {string|object} name         - an string describing the current name of the instruction (or the actual instruction in object form)
-           * @param {object}        snowball     - initially starts with the string to be passed 
-           *   defined as `{string:'...'}`, later is used to keep track of the parsing, and then is the 
+           * @param {object}        snowball     - initially starts with the string to be passed
+           *   defined as `{string:'...'}`, later is used to keep track of the parsing, and then is the
            *   object to be returned after processing is complete.
            */
           processGroup: function( instructions, name, snowball ){
@@ -200,16 +200,16 @@ async('theory.plugins.events', ['theory'], function(theory){
            * This string range is tracked within the snowball object.
            *
            * An instruction set can contain one or more groups of sub-instructions.
-           * 
-           * The default behaviour is to run all sub-instructions in sequence. However, if a 
-           * group of sub-instructions is set to short circuit, then any time a sub-instruction 
-           * finds a match, processing will cease for that group and instead start for the next 
+           *
+           * The default behaviour is to run all sub-instructions in sequence. However, if a
+           * group of sub-instructions is set to short circuit, then any time a sub-instruction
+           * finds a match, processing will cease for that group and instead start for the next
            * (if there is one).
-           * 
+           *
            * @memberof! theory.string.instructions
            * @method
            * @param {object} instructions   - the overarching object that contains all the instructions
-           * @param {object} instruction    - an individual instruction, that has been drilled down to by 
+           * @param {object} instruction    - an individual instruction, that has been drilled down to by
            * {@linkcode theory.string.instructions.processGroup processGroup}
            * @param {object} snowball       - see the description for {@linkcode theory.string.instructions.processGroup processGroup}
            * @param {object} [options]      - change the behaviour of this function
@@ -430,7 +430,7 @@ async('theory.plugins.events', ['theory'], function(theory){
           }
         }
       }),
-  
+
       /**
        * A collection of methods for dealing with {@linkcode theory.string} ranges.
        *
@@ -438,7 +438,7 @@ async('theory.plugins.events', ['theory'], function(theory){
        * @namespace
        */
       ranges: {
-  
+
         /**
          * Creates a range object from multiple tokens - this handles the situiaton
          * if ranges have similar starts, but (obviously) different ends. For example,
@@ -463,21 +463,21 @@ async('theory.plugins.events', ['theory'], function(theory){
           }
           return range;
         },
-    
+
         /**
          * Test whether a specific range collection has met its end.
-         * 
+         *
          * @memberof! theory.string.ranges
          * @method
          */
         hasEnd: function(range, c){
           return range.end.indexOf(c) != -1;
         },
-    
+
         /**
-         * Returns which range has ended out of the possible choices 
+         * Returns which range has ended out of the possible choices
          * contained with the range object.
-         * 
+         *
          * @memberof! theory.string.ranges
          * @method
          */
@@ -488,15 +488,15 @@ async('theory.plugins.events', ['theory'], function(theory){
           range.end = range.end[n];
           return range;
         }
-    
+
       }
-  
+
     });
-    
+
     return local;
-    
+
   })(theory.plugins.string);
-  
+
   /*
    * Use these instructions to parse Method keys for theory's overload ability
    */
@@ -554,7 +554,7 @@ async('theory.plugins.events', ['theory'], function(theory){
   theory.plugins.string.instructions('opn', {
     'default': {
       content: [
-        { divide: ['segments'], 
+        { divide: ['segments'],
           makes: 'segment',
           ranges: ['squote', 'dquote', 'square', 'angle', 'bubble'] }
       ]
@@ -702,5 +702,5 @@ async('theory.plugins.events', ['theory'], function(theory){
       }
     };
   };
-  
+
 });

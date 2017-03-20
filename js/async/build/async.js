@@ -1836,8 +1836,11 @@ return Q;
  *
  * @TODO: implement a script tag check, to make sure aliased resources
  * are not loaded more than once.
+ * @TODO: dislocate the code from depending on a specific promise implementation.
  */
 var Q=Q; if ( !Q ) throw new Error('async requires q.js');
+// requireJS/AMD fallback to avoid non-existence warnings
+var module = module || {}; module.exports = module.exports || {};
 /**
  * Load scripts in the best way ;)
  */
@@ -1856,8 +1859,10 @@ var async = function(){
     return async.obj.apply(this, arguments);
   }
 };
+// a useful temporary object
+async.tmp = {};
 // reference q-lite
-async.Q = Q;
+async.promiser = Q;
 /**
  * Update the registry, or pull an item from it
  */
@@ -1879,6 +1884,14 @@ async.registry = function(mixin){
       throw new Error('base property missing from base');
     }
     mixin = arguments[1];
+    if ( base.use ) {
+      if ( mixin[base.use] ) {
+        mixin = mixin[base.use];
+      }
+      else {
+        throw new Error('unimplemented use value ' + base.use);
+      }
+    }
     for ( key in mixin ) {
       if ( Object.prototype.hasOwnProperty.call(mixin, key) ) {
         item = mixin[key];
@@ -1999,10 +2012,15 @@ async.def = function(name){
   stored.def = name;
   stored.list = [];
   stored.names = [];
+  stored.asynced = true; // automatically assume this for now
   stored.addScript = async.addScript;
   stored.addDependency = async.addDependency;
   stored.queue = async.queue;
   stored.thens = [];
+  // @TODO: tidy this.
+  if ( !stored.added ) {
+    stored.defBeforeAdded = true;
+  }
   // remove the first arg, which is name
   Array.prototype.shift.call(args);
   // loop each (possible) dependency and (possible) thenable function
@@ -2038,39 +2056,55 @@ async.def = function(name){
   async.log && async.log('async.def', stored.def, 'queue created from', stored.list.length, 'dependencies', stored.names, stored.list);
   // create the queue
   stored.queue();
-  // store the reference
-  stored.q = stored.q.tap(function(entity){
-    //async.reference(stored.def, entity);
-  });
   // add spreads if we have them
   for ( i=0, l=stored.thens.length; (i<l) && (item=stored.thens[i]); i++ ) {
     // spread each resolved item to an argument in the completion handler
     stored.q = stored.q.spread(item);
   }
   // if there may have been dependencies, handle triggering the resolution of them
-  if ( stored.asynced ) {
-    // resolve the dependency chain for definintion
-    stored.q = stored.q.tap(function(){
-      if ( async.log ) {
-        var log = {};
-        for ( var i=0; i<stored.names.length; i++ ) {
-          log[stored.names[i]] = async.storeOrReference(stored.names[i]);
-        }
-        async.log('resolving entire dependency chain for', stored.def, 'as', log);
+  // resolve the dependency chain for definintion
+  stored.q = stored.q.tap(function(){
+    if ( !stored.dependencies ) return;
+    if ( async.log ) {
+      var log = {};
+      for ( var i=0; i<stored.names.length; i++ ) {
+        log[stored.names[i]] = async.storeOrReference(stored.names[i]);
       }
-      stored.dependencies.deferred.resolve.apply(stored.dependencies.deferred, arguments);
-    });
-    // reject the dependency chain
-    stored.q = stored.q.fail(function(ex){
+      async.log('resolving entire dependency chain for', stored.def, 'as', log);
+    }
+    stored.dependencies.deferred.notify(arguments);
+    stored.dependencies.deferred.resolve.apply(stored.dependencies.deferred, arguments);
+  });
+  // reject the dependency chain
+  stored.q = stored.q.fail(function(ex){
+    if ( stored.dependencies ) {
+      stored.dependencies.deferred.notify('rejected');
       stored.dependencies.deferred.reject(ex);
-    });
-  }
+    }
+    throw ex;
+  });
   // add the resolved to the end of the chain
   async.log && (stored.q = stored.q.tap(function(reference){
     async.log('full completion for script', stored.def, reference);
   }));
+  //
+  //stored.q = stored.q.progress(function(){
+  //  console.log('progress event fired for', stored.def, Array.prototype.slice.call(arguments, 0));
+  //});
   // if this is a definition add, then we may need to extend data.dependencies
   return stored.q;
+};
+/**
+ * Return a resolved reference by name, if it exists
+ */
+async.ref = function(name, fallback, overwrite){
+  if ( ! async.ref.list ) {
+    async.ref.list = {};
+  }
+  if ( async.ref.list[name] === undefined || overwrite ) {
+    async.ref.list[name] = fallback;
+  }
+  return async.ref.list[name] || fallback;
 };
 /**
  * if we don't have an object stored for this name, create one
@@ -2094,44 +2128,11 @@ async.storeOrReference = function(name){
  */
 async.addScript = function(name, data){
   var loader, originalLoader, stored, list = this.list;
-  async.log && async.log('adding script', name);
+  async.log && async.log('adding/referencing script', name);
   stored = async.storeOrReference(name);
+  stored.added = true;
   // if we have data, but aren't "loading", set the script loading
   if ( stored.loading ) return;
-  // if we are already waiting, we can skip this set-up
-  if ( !stored.waiting ) {
-    // get the loader
-    loader = originalLoader = async.load();
-    // we don't know the state yet
-    stored.asynced = null;
-    // add a wait for any dependencies that this script relies on
-    loader = loader.then(function(){
-      stored.dependencies = { deferred: Q.defer() };
-      stored.asynced
-        ? async.log && async.log('waiting for deps', name)
-        : async.log && async.log('not waiting for deps', name)
-      ;
-      return stored.asynced ? stored.dependencies.deferred.promise : null;
-    });
-    // add the resolved to the end of the chain
-    async.log && (loader = loader.tap(function(){
-      async.log('about to trigger the resolve for', name);
-    }));
-    // add the resolver
-    loader = loader.then(function(){
-      stored.resolve && async.log && async.log('resolving using function', name);
-      return stored.resolve ? stored.resolve() : arguments[0];
-    });
-    async.log && (loader = loader.tap(function(){
-      async.log('resolved for', name, 'as', Array.prototype.slice.call(arguments, 0));
-      stored.resolved = true;
-    }));
-    // expose the load for use with dependencies
-    stored.loader = loader;
-    stored.originalLoader = originalLoader;
-    // the final trigger
-    list.push(loader);
-  }
   // if we have been provided with data/path info, we can start now
   if ( data ) {
     // anything that is asynced should always resolve with the return value
@@ -2146,6 +2147,54 @@ async.addScript = function(name, data){
       stored.resolve = data.resolve || async.resolver(name);
     }
     stored.path = data.substr ? data : data.path;
+  }
+  // if we are already waiting, we can skip this set-up
+  if ( !stored.waiting ) {
+    // get the loader
+    loader = originalLoader = async.load();
+    // add a wait for any dependencies that this script relies on
+    loader = loader.then(function(){
+      // this is only possible if the async.def has been called prior to async.addScript
+      // for the same script. This occurs when scripts have been combined into one
+      // via a build process and do not need to be individually loaded.
+      if ( stored.defBeforeAdded ) {
+        async.log && async.log('not waiting (2) for dependencies for', name);
+        return null;
+      }
+      else if ( stored.asynced ) {
+        async.log && async.log('waiting for dependencies for', name);
+        stored.dependencies = { deferred: async.promiser.defer() };
+        return stored.dependencies.deferred.promise;
+      }
+      else {
+        async.log && async.log('not waiting for dependencies for', name);
+        return null;
+      }
+    });
+    // add the resolved to the end of the chain
+    async.log && (loader = loader.tap(function(){
+      async.log('about to trigger the resolve for', name);
+    }));
+    // add the resolver
+    loader = loader.then(function(){
+      stored.resolve
+        ? async.log && async.log('resolving using function', name)
+        : async.log && async.log('resolving using return value', name)
+      ;
+      return stored.resolve ? stored.resolve() : arguments[0];
+    });
+    loader = loader.tap(function(entity){
+      async.log && async.log('resolved for', name, 'as', Array.prototype.slice.call(arguments, 0));
+      stored.resolved = true;
+      async.ref(name, entity, true);
+    });
+    // expose the load for use with dependencies
+    stored.loader = loader;
+    stored.originalLoader = originalLoader;
+    // the final trigger
+    list.push(stored.q || loader);
+  }
+  if ( data ) {
     stored.waiting = false;
     stored.loading = true;
     // @TODO: do away with the clunky originalLoader
@@ -2153,6 +2202,7 @@ async.addScript = function(name, data){
       stored.originalLoader.url(stored.path);
     }
     else {
+      async.log && async.log('no path so auto-resolving', name);
       stored.originalLoader.resolve();
     }
   }
@@ -2168,30 +2218,43 @@ async.addScript = function(name, data){
  * - This is called for each dependency declared by an async wrapper call inside a script
  */
 async.addDependency = function(name, data){
-  async.log && async.log('adding dependency', name, 'for', this.def);
   var self = this, stored = async.storeOrReference(name);
   if ( stored.loader && !stored.waiting ) {
+    if ( this.q ) {
+      // Queue already created, no more dependencies can be added.
+      async.log && async.log('queue already created, cannot update dependency (1)', name, 'for', this.def);
+      return;
+    }
+    async.log && async.log('adding dependency (1)', name, 'for', this.def);
     // the final trigger, things that have been asynced will have a stored.q
     // things that haven't should have a stored.loader
     this.list.push(stored.q || stored.loader);
     this.names.push(name);
   }
   else if ( data ) {
+    async.log && async.log('adding dependency (2)', name, 'for', this.def);
     if ( data.join ) {
-      this.names.push(name);
+      !this.q && this.names.push(name);
       for ( var i=0; i<data.length; i++ ) {
         this.addScript(data[i], data[i]);
       }
     }
     else {
       this.addScript(name, data);
-      this.names.push(name);
+      !this.q && this.names.push(name);
     }
   }
   // if no data, and no loader yet, assume we need to wait for registry info
   else {
-    async.log && async.log('waiting for dependency', name, 'for', this.def);
-    this.addScript(name);
+    // if we are already waiting, we just need to reference the promise
+    if ( stored.waiting ) {
+      async.log && async.log('already waiting for dependency', name, 'for', this.def);
+      this.list.push(stored.q || stored.loader);
+    }
+    else {
+      async.log && async.log('waiting for dependency', name, 'for', this.def);
+      this.addScript(name);
+    }
     if ( !async.registry.waiting[name] ) {
       async.registry.waiting[name] = [];
     }
@@ -2211,7 +2274,7 @@ async.addDependency = function(name, data){
  *
  */
 async.queue = function(){
-  return (this.q = Q.all(this.list));
+  return (this.q = async.promiser.all(this.list));
 };
 /**
  * Return a default resolve function, incase one isn't specified by the user
@@ -2226,9 +2289,15 @@ async.resolver = function(name){
  * Async loader, but using script tag for full browser support
  */
 async.load = function(url){
-  var d = Q.defer(), loader = d.promise;
-  loader.resolve = function(){d.resolve();};
-  loader.reject = function(){d.reject();};
+  var d = async.promiser.defer(), loader = d.promise;
+  loader.resolve = function(){
+    async.log && async.log('script resolved');
+    d.resolve();
+  };
+  loader.reject = function(){
+    async.log && async.log('script rejected');
+    d.reject();
+  };
   loader.url = function(url){
     var script = document.createElement('script');
     script.type = 'text/javascript';

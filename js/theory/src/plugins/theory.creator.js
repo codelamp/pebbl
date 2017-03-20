@@ -674,7 +674,7 @@ async('theory.plugins.creator', ['theory'], function(theory){
       return obj;
     }
   });
-  
+
   return theory.plugins.creator;
 
 });

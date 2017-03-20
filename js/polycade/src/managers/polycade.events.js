@@ -1,10 +1,10 @@
 /**
  * Make sure the base polycade exists
  */
-var polycade = polycade || {};
-    polycade.managers = polycade.managers || {};
-
 async('polycade.events', ['jq', 'theory', 'Phaser', 'theory.plugins.events'], function($, theory, Phaser){
+
+  var polycade = async.ref('polycade', {});
+      polycade.managers = polycade.managers || {};
 
   /**
    * The event manager for polycade

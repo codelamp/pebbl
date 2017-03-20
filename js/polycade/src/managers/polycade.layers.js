@@ -1,10 +1,10 @@
 /**
  * Make sure the base polycade exists
  */
-var polycade = polycade || {};
-    polycade.managers = polycade.managers || {};
-
 async('polycade.layers', ['jq', 'theory', 'Phaser'], function($, theory, Phaser){
+
+  var polycade = async.ref('polycade', {});
+      polycade.managers = polycade.managers || {};
 
   /**
    * The event manager for polycade
@@ -12,7 +12,7 @@ async('polycade.layers', ['jq', 'theory', 'Phaser'], function($, theory, Phaser)
   polycade.managers.layers = (function(mixin){
 
     var local = theory.base.mix(mixin || {}, {
-      
+
       name: 'polycade.layers',
 
       prep: function( options ){

@@ -1,19 +1,34 @@
-var theory = theory || {};
-    theory.plugins = theory.plugins || {};
-    theory.global = this || (function(){return this;})();
-    theory.undefined = undefined;
-
 async.registry('theory', {
-  // plugins have a dependency on 'theory'
-  'theory.plugins.array':      { file: 'plugins/theory.array.js',     asynced: true },
-  'theory.plugins.events':     { file: 'plugins/theory.events.js',    asynced: true },
-  'theory.plugins.transform':  { file: 'plugins/theory.transform.js', asynced: true },
-  // all others assume to be loaded simultaneously with 'theory' as part of the package
-  'theory.is':                 { file: 'theory.is.js',                asynced: true },
-  'theory.has':                { file: 'theory.has.js',               asynced: true },
-  'theory.to':                 { file: 'theory.to.js',                asynced: true },
-  'theory.base':               { file: 'theory.base.js',              asynced: true },
-  'theory.run':                { file: 'theory.run.js',               asynced: true }
+  src: {
+    // plugins have a dependency on 'theory'
+    'theory.plugins.array':      { file: 'src/plugins/theory.array.js',     asynced: true },
+    'theory.plugins.events':     { file: 'src/plugins/theory.events.js',    asynced: true },
+    'theory.plugins.transform':  { file: 'src/plugins/theory.transform.js', asynced: true },
+    'theory.plugins.creator':    { file: 'src/plugins/theory.creator.js',   asynced: true },
+    'theory.plugins.broadcast':  { file: 'src/plugins/theory.broadcast.js', asynced: true },
+    'theory.plugins.expreg':     { file: 'src/plugins/theory.expreg.js',    asynced: true },
+    // all others assume to be loaded simultaneously with 'theory' as part of the package
+    'theory.is':                 { file: 'src/theory.is.js',                asynced: true },
+    'theory.has':                { file: 'src/theory.has.js',               asynced: true },
+    'theory.to':                 { file: 'src/theory.to.js',                asynced: true },
+    'theory.base':               { file: 'src/theory.base.js',              asynced: true },
+    'theory.run':                { file: 'src/theory.run.js',               asynced: true }
+  },
+  build: {
+    // plugins have a dependency on 'theory'
+    'theory.plugins.array':      { file: 'build/plugins/theory.array.min.js',     asynced: true },
+    'theory.plugins.events':     { file: 'build/plugins/theory.events.min.js',    asynced: true },
+    'theory.plugins.transform':  { file: 'build/plugins/theory.transform.min.js', asynced: true },
+    'theory.plugins.creator':    { file: 'build/plugins/theory.creator.min.js',   asynced: true },
+    'theory.plugins.broadcast':  { file: 'build/plugins/theory.broadcast.min.js', asynced: true },
+    'theory.plugins.expreg':     { file: 'build/plugins/theory.expreg.min.js',    asynced: true },
+    // all others assume to be loaded simultaneously with 'theory' as part of the package
+    'theory.is':                 { asynced: true },
+    'theory.has':                { asynced: true },
+    'theory.to':                 { asynced: true },
+    'theory.base':               { asynced: true },
+    'theory.run':                { asynced: true }
+  }
 });
 
 /**
@@ -21,7 +36,10 @@ async.registry('theory', {
  */
 async('theory', ['underscore'], ['theory.is', 'theory.has', 'theory.to', 'theory.base', 'theory.run'], function(_, is, has, to, base, run){
 
-  var t = theory;
+  var theory = async.ref('theory', {}), t = theory;
+      theory.plugins = theory.plugins || {};
+      theory.global = this || (function(){return this;})();
+      theory.undefined = undefined;
 
   /**
    * Extend `a` with properties in `b`, with optional `options`.
@@ -75,7 +93,7 @@ async('theory', ['underscore'], ['theory.is', 'theory.has', 'theory.to', 'theory
      */
     define: function(context, attribute, desc){
       if ( !Object.defineProperty ) return false;
-      Object.defineProperty(context, attribute, desc);
+      return Object.defineProperty(context, attribute, desc);
     },
 
     /*
@@ -198,17 +216,17 @@ async('theory', ['underscore'], ['theory.is', 'theory.has', 'theory.to', 'theory
      * @todo implement clones for other types of reasonable objects i.e. Date?
      */
     dereference: function(a, options){
-      var dereference = this.dereference;
+      var i, dereference = this.dereference;
       if ( is.object(a) ) {
         var b = {};
-        for ( var i in a ) {
+        for ( i in a ) {
           a[i] && (b[i] = dereference.call(this, a[i]));
         }
         return b;
       }
       else if ( is.array(a) && !a.ignoreDereference ) {
         b = [];
-        for ( var i=0, l=a.length; i<l; i++ ) {
+        for ( i=0, l=a.length; i<l; i++ ) {
           b[i] = a[i] ? dereference.call(this, a[i]) : a[i];
         }
         return b;
@@ -370,7 +388,7 @@ async('theory', ['underscore'], ['theory.is', 'theory.has', 'theory.to', 'theory
     defaults: [null, false, 0],
     required: [true],
     method: function(obj, deep, level){
-      if ( is.void(obj) ) { obj = this; } /// @TODO: default deep?
+      if ( is['void'](obj) ) { obj = this; } /// @TODO: default deep?
       var key, dup;
       if ( !level || (deep && deep.call && deep.call(obj, obj, level)) || deep === true || (is.number(deep) && (deep < level)) ) {
         switch ( true ) {

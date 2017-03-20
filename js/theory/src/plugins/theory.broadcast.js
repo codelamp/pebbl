@@ -309,7 +309,7 @@ async('theory.plugins.broadcast', ['theory'], function(theory){
         '');
       }
 
-    };
+    });
 
     /**
      * Expose this functionality in a public easy-to-access way

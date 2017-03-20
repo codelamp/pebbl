@@ -39,10 +39,10 @@ async('theory.plugins.expreg', ['theory'], function(theory){
         }
       }
     };
-    
+
     // provide some addition functions
     theory.extend(ExpReg, mixin);
-    
+
     /*
      * Needed to reverse engineer a RegExp into constituent parts
      */

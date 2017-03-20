@@ -3,6 +3,8 @@
  */
 async('theory.base', ['underscore'], function(_){
 
+  var theory = async.ref('theory', {});
+
   /**
    * A base object handler in the theory-style
    *
@@ -73,7 +75,7 @@ async('theory.base', ['underscore'], function(_){
     }
 
   };
-  
+
   return theory.base;
 
 });

@@ -133,7 +133,7 @@ async('theory.plugins.events', ['theory'], function(theory){
     return local;
 
   })(theory.plugins.events || {});
-  
+
   return theory.plugins.events;
-  
+
 });

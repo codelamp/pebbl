@@ -6,7 +6,6 @@
   "dependencies": {
     "jqlite": "^0.2.41",
     "phaser": "^2.6.2",
-    "polyk": "^0.24.0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
@@ -15,6 +14,7 @@
     "gulp-concat": "^2.6.1"
   },
   "scripts": {
+    "build": "gulp",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Phil Glanville",
