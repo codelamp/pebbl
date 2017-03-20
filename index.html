@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <title>Pebbl — v0.4</title>
 <link type="text/css" rel="stylesheet" href="scripts/jquery.qtip.css" />
-<link type="text/css" rel="stylesheet" href="styles/core.css" />
+<!--<link type="text/css" rel="stylesheet" href="styles/core.css" />//-->
 <meta property="og:title" content="Pebbl v0.4" />
 <meta property="og:image" content="http://pebbl.co.uk/v0.3/site/ad.png" />
 <meta property="og:description" content="This is just a demo screen of Pebbl to test the game engine (powered by Phaser &amp; Pixi js)"/>
@@ -56,12 +56,12 @@ else {
   });
 }
 async('init', ['game'])
-  .spread(function(game){
-    console.log(arguments);
+  .then(function(items){
+    var game = items[0];
     console.log('GAME HAS FULLY LOADED!');
     game.init();
   })
-  .fail(function(ex){
+  .catch(function(ex){
     console.log(ex);
   })
 ;

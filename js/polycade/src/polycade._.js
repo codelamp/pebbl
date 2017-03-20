@@ -5,7 +5,7 @@ async.registry('polycade', {
     'underscore':                { file: 'node_modules/underscore/underscore-min.js', resolve: function(){ return _; } },
     'Phaser':                    { file: 'node_modules/phaser/build/phaser.min.js',   resolve: function(){ return Phaser; } },
     'PolyK':                     { file: 'vendor/polyk/polyk.js',                     resolve: function(){ return PolyK; } },
-    'Q':                         { resolve: function(){ return async.Q; } },
+    'q':                         { resolve: function(){ return async.promiser; } },
     // polycade managers
     'polycade.events':           { file: 'src/managers/polycade.events.js', asynced: true },
     'polycade.layers':           { file: 'src/managers/polycade.layers.js', asynced: true },
@@ -21,7 +21,7 @@ async.registry('polycade', {
     'underscore':                { file: 'node_modules/underscore/underscore-min.js', resolve: function(){ return _; } },
     'Phaser':                    { file: 'node_modules/phaser/build/phaser.min.js',   resolve: function(){ return Phaser; } },
     'PolyK':                     { file: 'vendor/polyk/polyk.js',                     resolve: function(){ return PolyK; } },
-    'Q':                         { resolve: function(){ return async.Q; } },
+    'q':                         { resolve: function(){ return async.promiser; } },
     // polycade managers
     'polycade.events':           { asynced: true },
     'polycade.layers':           { asynced: true },

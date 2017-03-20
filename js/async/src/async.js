@@ -4,35 +4,130 @@
  *
  * @TODO: implement a script tag check, to make sure aliased resources
  * are not loaded more than once.
- * @TODO: dislocate the code from depending on a specific promise implementation.
+ * @DONE: dislocate the code from depending on a specific promise implementation.
+ * @DONE: remove defer anit-pattern
+ * @TODO: tidy up and reduce code
+ * @TODO: due to the way thens are tacked on inside async.def it is no longer
+ *        possible to do `async('name', ['dep']).then(function(){ ... });` as
+ *        the resolve function. You can still use thens that will trigger once
+ *        everything is resolved. This would be good to fix, if possible.
  */
-var Q=Q; if ( !Q ) throw new Error('async requires q.js');
 // requireJS/AMD fallback to avoid non-existence warnings
 var module = module || {}; module.exports = module.exports || {};
 /**
- * Load scripts in the best way ;)
+ * Load scripts in the way that isn't synchronous
  */
 var async = function(){
-  if ( String(window.location).indexOf('debug') != -1 ) {
-    async.log = function(){
-      var args = Array.prototype.slice.call(arguments);
-      args.unshift('async', '--');
-      return console.log.apply(console, args);
-    };
-  }
-  if ( arguments[0] && arguments[0].substr ) {
-    return async.def.apply(this, arguments);
-  }
-  else {
-    return async.obj.apply(this, arguments);
-  }
+  return async.def.apply(this, arguments);
 };
+/**
+ * Async Logging, if requested
+ */
+String(window.location).indexOf('debug') != -1 && (async.log = function(){
+  var args = Array.prototype.slice.call(arguments); args.unshift('async', '--');
+  return console.log.apply(console, args);
+});
 // a useful temporary object
 async.tmp = {};
-// reference q-lite
-async.promiser = Q;
+// reference the Promise handler, native or q-lite
+async.promiser = Promise || Q;
 /**
- * Update the registry, or pull an item from it
+ * Adds new registry definitions for async to use. This code can be called
+ * in two ways. First global definitions:
+ *
+ *     async.registry({ ... })
+ *
+ * Or, related definitions:
+ *
+ *     async.registry(name, { ... })
+ *
+ * Definitions must registered in this manner in order for async to know
+ * how to treat them when they are loaded.
+ *
+ * ### Overview
+ *
+ * When defining a registry, the structure can be broken down into two levels.
+ *
+ * ### Registry type (optional)
+ *
+ * First level describes the type of registry. Most of my libraries use only
+ * two types currently, 'dev' and 'build'. The reason for this is that the
+ * registry can change when introducing build processes, that may combine
+ * separate development scripts down into one. You could theorectically use the
+ * the registry type for other things however.
+ *
+ * For example, in the following the 'theory.example' entity is in its own
+ * include in development, but when running after build it is already present
+ * as part of the 'theory' definition:
+ *
+ *     async.registry('theory', {
+ *       'dev': {
+ *         'theory.example': { file: 'src/theory.example.js', asynced: true }
+ *       },
+ *       'build': {
+ *         'theory.example': { asynced: true }
+ *       }
+ *     })
+ *
+ * Registry type only really makes sense for related definitions, those where
+ * the registry is linked to a partiuclar definition name.
+ *
+ * ### Definitions
+ *
+ * The next level actually defines the items to be loaded or resolved. Each
+ * item in the list should represent a naned script to load, or resolve.
+ * Each high-level key represents the name of the registered item, the object
+ * stored under that key holds the config for async.
+ *
+ * Allowable properties/formats for this object/value are:
+ *
+ * #### String value
+ *
+ * You can define the path to the script directly, without the need for a
+ * wrapper config object.
+ *
+ *     {
+ *       'theory': 'src/theory.js',
+ *       'jQuery': 'vendor/jquery/jquery-min.js'
+ *     }
+ *
+ * #### Object value, with properties
+ *
+ * You can also define more detailed information, using a sub object.
+ *
+ *     {
+ *       'theory': { path: 'src/theory.js' },
+ *       'jQuery': { path: 'vendor/jquery/jquery-min.js' }
+ *     }
+ *
+ * Allowable properties of the sub object, all are optional:
+ *
+ * - path:
+ *     A string absolute (or relative path to the rendering HTML file).
+ *     The href value you would expect to see in the script tag.
+ * - resolve:
+ *     A function that should return the entity the script is
+ *     loading i.e. `function{ return jQuery; }` useful for definitions
+ *     that do not load using the async system e.g. vendor scripts
+ * - asynced:
+ *     A boolean to flag to tell the async system that the script to
+ *     be referenced or loaded is wrapped with the async wrapped. Using
+ *     the async system means dependencies can be managed, and the
+ *     eventual resolved/exported item is automatically handled.
+ * - file:
+ *     When creating a 'related registry' you can use 'file' instead
+ *     of 'path' to supply a partial path. Async will calculate the
+ *     full path based on the 'base' property of the parent registry item.
+ * - base:
+ *     When creating a registry item that represents a bundle or package
+ *     that is also controlled via the async system, you can define the
+ *     base path to where the script can be found. This then used
+ *     inconjunction with 'file' properties with the included bundle to
+ *     correctly calculate the paths of the scripts to load.
+ *   use:
+ *     Defines what registry type this item should use for its registry
+ *     look ups.
+ *
  */
 async.registry = function(mixin){
   var key, base, item;
@@ -85,13 +180,38 @@ async.registry = function(mixin){
   }
 };
 /**
- *
+ * Wrapper to enable switching between Promise implementations
+ */
+async.defer = function(){
+  var resolver, rejecter, notifier, promise = async.promise(function(resolve, reject, notify){
+    resolver = resolve;
+    rejecter = reject;
+    notifier = notify;
+  });
+  resolver && (promise.resolve = resolver);
+  rejecter && (promise.reject = rejecter);
+  notifier && (promise.notify = notifier);
+  return promise;
+};
+/**
+ * Wrapper to enable switching between Promise implementations
+ */
+async.promise = function(callback){
+  if ( async.promiser.Promise ) {
+    return async.promiser.Promise(callback);
+  }
+  else {
+    return new async.promiser(callback);
+  }
+};
+/**
+ * Simple look up for the registry
  */
 async.registry.get = function(name){
   return this._[name] || null;
 };
 /**
- *
+ * Simple add to the registry
  */
 async.registry.add = function(key, val){
   this._[key] = val;
@@ -104,78 +224,15 @@ async.registry.add = function(key, val){
   }
 };
 /**
- * Called with an object defintion of scripts
- *
- * - async.obj({ ... })
- *
- * Each item in the list should represent a script to load
- *
- * Allowable properties/formats are:
- *
- * ### string value
- *
- *     key: 'path'
- *
- * ### object value, with properties
- *
- *     key: { path: '' }
- *
- * Allowable properties of the object are:
- *
- * - path:
- *     a string absolute or relative path (as you would in the script tag)
- * - resolve:
- *     an optional function that should return the entity the script is
- *     loading i.e. function{ return jQuery; }
- * - dependencies:
- *     a boolean to flag the async processing should wait for dependencies
- *     for this script before being counted as ready.
- *
- */
-async.obj = function(){
-  async.log && async.log('async.obj');
-  var i, l, args = arguments, key, item, ctx = {
-    list: [],
-    add: async.addScript,
-    queue: async.queue,
-    thens: []
-  };
-  for ( i=0, l=args.length; (i<l) && (item=args[i]); i++ ) {
-    // if function, treat as thenable
-    if ( item.apply ) {
-      ctx.thens.push(item);
-      continue;
-    }
-    // skip unexpected items
-    if ( item.join || item.split || !isNaN(item) ) continue;
-    // step the items in the object
-    for ( key in item ) {
-      if ( Object.prototype.hasOwnProperty.call(item, key) ) {
-        ctx.add(key, item[key]);
-      }
-    }
-  }
-  // make the queue
-  ctx.queue();
-  // add spreads if we have them
-  for ( i=0, l=ctx.thens.length; (i<l) && (item=ctx.thens[i]); i++ ) {
-    // spread each resolved item to an argument in the completion handler
-    ctx.q = ctx.q.spread(item);
-  }
-  return ctx.q;
-
-};
-/**
- * Called with a named definition for one script
+ * Define a named entity, specifying its dependencies, and resolve functions.
  *
  * - async.def(name, func{})
  * - async.def(name, deps[], func{})
  * - async.def(name, deps[], deps[], func{})
  * - async.def(name, deps[], deps[], func{}, func{}, ...)
- *
  */
 async.def = function(name){
-  async.log && async.log('async.def', name);
+  async.log && async.log('async()', name);
   var i, l, args = arguments, key, item, stored = async.storeOrReference(name), data;
   stored.def = name;
   stored.list = [];
@@ -183,12 +240,8 @@ async.def = function(name){
   stored.asynced = true; // automatically assume this for now
   stored.addScript = async.addScript;
   stored.addDependency = async.addDependency;
-  stored.queue = async.queue;
   stored.thens = [];
-  // @TODO: tidy this.
-  if ( !stored.added ) {
-    stored.defBeforeAdded = true;
-  }
+  stored.defBeforeAdded = !stored.added;
   // remove the first arg, which is name
   Array.prototype.shift.call(args);
   // loop each (possible) dependency and (possible) thenable function
@@ -223,28 +276,32 @@ async.def = function(name){
   }
   async.log && async.log('async.def', stored.def, 'queue created from', stored.list.length, 'dependencies', stored.names, stored.list);
   // create the queue
-  stored.queue();
+  stored.q = async.promiser.all(stored.list);
   // add spreads if we have them
   for ( i=0, l=stored.thens.length; (i<l) && (item=stored.thens[i]); i++ ) {
     // spread each resolved item to an argument in the completion handler
-    stored.q = stored.q.spread(item);
+    stored.q = stored.q.then(function(){
+      return item.apply(this, arguments[0]);
+    });
   }
   // if there may have been dependencies, handle triggering the resolution of them
   // resolve the dependency chain for definintion
-  stored.q = stored.q.tap(function(){
-    if ( !stored.dependencies ) return;
-    if ( async.log ) {
-      var log = {};
-      for ( var i=0; i<stored.names.length; i++ ) {
-        log[stored.names[i]] = async.storeOrReference(stored.names[i]);
+  stored.q = stored.q.then(function(){
+    if ( stored.dependencies ) {
+      if ( async.log ) {
+        var log = {};
+        for ( var i=0; i<stored.names.length; i++ ) {
+          log[stored.names[i]] = async.storeOrReference(stored.names[i]);
+        }
+        async.log('resolving entire dependency chain for', stored.def, 'as', log);
       }
-      async.log('resolving entire dependency chain for', stored.def, 'as', log);
+      stored.dependencies.deferred.notify && stored.dependencies.deferred.notify(arguments);
+      stored.dependencies.deferred.resolve.apply(stored.dependencies.deferred, arguments);
     }
-    stored.dependencies.deferred.notify(arguments);
-    stored.dependencies.deferred.resolve.apply(stored.dependencies.deferred, arguments);
+    return arguments[0];
   });
   // reject the dependency chain
-  stored.q = stored.q.fail(function(ex){
+  stored.q = stored.q['catch'](function(ex){
     if ( stored.dependencies ) {
       stored.dependencies.deferred.notify('rejected');
       stored.dependencies.deferred.reject(ex);
@@ -252,8 +309,9 @@ async.def = function(name){
     throw ex;
   });
   // add the resolved to the end of the chain
-  async.log && (stored.q = stored.q.tap(function(reference){
+  async.log && (stored.q = stored.q.then(function(reference){
     async.log('full completion for script', stored.def, reference);
+    return reference;
   }));
   //
   //stored.q = stored.q.progress(function(){
@@ -331,8 +389,8 @@ async.addScript = function(name, data){
       }
       else if ( stored.asynced ) {
         async.log && async.log('waiting for dependencies for', name);
-        stored.dependencies = { deferred: async.promiser.defer() };
-        return stored.dependencies.deferred.promise;
+        stored.dependencies = { deferred: async.defer() };
+        return stored.dependencies.deferred;
       }
       else {
         async.log && async.log('not waiting for dependencies for', name);
@@ -340,8 +398,9 @@ async.addScript = function(name, data){
       }
     });
     // add the resolved to the end of the chain
-    async.log && (loader = loader.tap(function(){
+    async.log && (loader = loader.then(function(){
       async.log('about to trigger the resolve for', name);
+      return arguments[0];
     }));
     // add the resolver
     loader = loader.then(function(){
@@ -351,10 +410,11 @@ async.addScript = function(name, data){
       ;
       return stored.resolve ? stored.resolve() : arguments[0];
     });
-    loader = loader.tap(function(entity){
+    loader = loader.then(function(entity){
       async.log && async.log('resolved for', name, 'as', Array.prototype.slice.call(arguments, 0));
       stored.resolved = true;
       async.ref(name, entity, true);
+      return entity;
     });
     // expose the load for use with dependencies
     stored.loader = loader;
@@ -379,7 +439,6 @@ async.addScript = function(name, data){
     stored.waiting = true;
   }
 };
-
 /**
  * Only called for scripts that use a async() wrapper inside their definition
  *
@@ -439,12 +498,6 @@ async.addDependency = function(name, data){
   }
 };
 /**
- *
- */
-async.queue = function(){
-  return (this.q = async.promiser.all(this.list));
-};
-/**
  * Return a default resolve function, incase one isn't specified by the user
  */
 async.resolver = function(name){
@@ -457,37 +510,50 @@ async.resolver = function(name){
  * Async loader, but using script tag for full browser support
  */
 async.load = function(url){
-  var d = async.promiser.defer(), loader = d.promise;
-  loader.resolve = function(){
-    async.log && async.log('script resolved');
-    d.resolve();
-  };
-  loader.reject = function(){
-    async.log && async.log('script rejected');
-    d.reject();
-  };
-  loader.url = function(url){
-    var script = document.createElement('script');
-    script.type = 'text/javascript';
-    if (script.readyState){
-      script.onreadystatechange = function(){
-        if (script.readyState == 'loaded' || script.readyState == 'complete'){
-          async.log && async.log('script loaded (ie)', url);
-          script.onreadystatechange = null;
-          d.resolve();
+  var resolver, rejecter, urlSetter;
+  var loader = async.promise(function(resolve, reject, notify){
+    resolver = function(){
+      async.log && async.log('script resolved');
+      resolve();
+    };
+    rejecter = function(){
+      async.log && async.log('script rejected');
+      reject();
+    };
+    urlSetter = function(url){
+      var script;
+      if ( document.querySelector ) {
+        script = document.querySelector('script[src="' + url + '"]');
+        if ( script ) {
+          return resolve(script);
         }
-      };
-    }
-    else {
-      script.onload = function(){
-        async.log && async.log('script loaded', url);
-        d.resolve();
-      };
-    }
-    script.src = url;
-    document.getElementsByTagName("head")[0].appendChild(script);
-    async.log && async.log('injected script tag for', url);
-  };
+      }
+      script = document.createElement('script');
+      script.type = 'text/javascript';
+      if (script.readyState){
+        script.onreadystatechange = function(){
+          if (script.readyState == 'loaded' || script.readyState == 'complete'){
+            async.log && async.log('script loaded (ie)', url);
+            script.onreadystatechange = null;
+            resolve(script);
+          }
+        };
+      }
+      else {
+        script.onload = function(){
+          async.log && async.log('script loaded', url);
+          resolve(script);
+        };
+      }
+      script.src = url;
+      (document.documentElement||document.body).appendChild(script);
+      //document.getElementsByTagName("head")[0]
+      async.log && async.log('injected script tag for', url);
+    };
+  });
+  loader.resolve = resolver;
+  loader.reject = rejecter;
+  loader.url = urlSetter;
   url && loader.url(url);
   return loader;
 };

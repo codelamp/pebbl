@@ -1,7 +1,7 @@
 /**
  * The event/trigger manager for polycade
  */
-async('polycade.assets', ['underscore', 'theory', 'Phaser', 'Q'], function(_, theory, Phaser, Q){
+async('polycade.assets', ['underscore', 'theory', 'Phaser', 'q'], function(_, theory, Phaser, q){
 
   var polycade = async.ref('polycade', {});
       polycade.managers = polycade.managers || {};
