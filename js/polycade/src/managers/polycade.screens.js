@@ -7,6 +7,79 @@ async('polycade.screens', ['underscore', 'theory', 'Phaser', 'q', 'defiant'], fu
       polycade.managers = polycade.managers || {};
 
   /**
+   *
+   */
+  t.navigate = t.base.mix({}, {
+
+    prep: function(target){
+      this.i = {};
+      this.i.targets = target.join ? target : [target];
+    },
+
+    search: function(selector){
+      var targets = [];
+      _.each(this.i.targets, function(target, i){
+        var result = JSON.search(target, selector);
+        console.log(i, result, target, selector);
+        result && (targets = _.union(targets, result));
+      });
+      return t.navigate.create(targets);
+    },
+
+    eachOwn: function(callback, context){
+      var targets = []; context = context || this;
+      _.each(this.i.targets, function(target, i){
+        var result = _.map(target, function(val, key){
+          callback.call(context, val, key);
+          return val;
+        });
+        result && (targets = _.union(targets, result));
+      });
+      return t.navigate.create(targets);
+    },
+
+    mapOwn: function(callback, context){
+      var targets = []; context = context || this;
+      _.each(this.i.targets, function(target, i){
+        var result = _.map(target, callback, context);
+        result && (targets = _.union(targets, result));
+      });
+      return t.navigate.create(targets);
+    },
+
+    log: function(){
+      console.log(this.i.targets);
+      return this;
+    }
+
+  });
+
+  t.collectionNamed = t.base.mix({}, {
+
+    prep: function(){
+      this.i = {};
+      this.i.items = {};
+    },
+
+    add: function(name, val){
+      if ( !this.i.items[name] ) {
+        this.i.items[name] = val;
+      }
+    },
+
+    remove: function(){
+      if ( this.i.items[name] ) {
+        delete this.i.items[name];
+      }
+    },
+
+    get: function(){
+      return this.i.items;
+    }
+
+  });
+
+  /**
    * Needs to be broken out into its own file
    */
   polycade.screen = t.base.mix(polycade.screen || {}, {
@@ -18,6 +91,8 @@ async('polycade.screens', ['underscore', 'theory', 'Phaser', 'q', 'defiant'], fu
       this.name = options.name;
       this.game = options.game;
       this.phaser = options.game.phaser;
+      this.groups = t.collectionNamed.create();
+      this.adornments = t.collectionNamed.create();
     },
 
     /**
@@ -28,7 +103,7 @@ async('polycade.screens', ['underscore', 'theory', 'Phaser', 'q', 'defiant'], fu
       return Q.Promise(this["loadFromJSON.Promise"]({
         json: json,
         loader: new Phaser.Loader(this.phaser)
-      }));
+      })).then(this["loadFromJSON.dataComplete"]());
     },
 
     /**
@@ -118,7 +193,7 @@ async('polycade.screens', ['underscore', 'theory', 'Phaser', 'q', 'defiant'], fu
             }));
           break;
           case 'image':
-            item.image = this.phaser.cache.getJSON(item.path);
+            item.image = this.phaser.cache.getImage(item.path);
             if ( item.jsonRef.join ) {
               for ( i=0; i<item.jsonRef.length; i++ ) {
                 item.jsonRef[i].cacheName = item.path;
@@ -135,6 +210,31 @@ async('polycade.screens', ['underscore', 'theory', 'Phaser', 'q', 'defiant'], fu
         return Q.when(true);
       }, this);
     },
+
+   /**
+    * Process the data loaded into screen entities
+    * ----------------------- YOU ARE HERE!
+    */
+   'loadFromJSON.dataComplete': function(){
+     return _.bind(function(){
+       try {
+         var nav = t.navigate.create(this.json);
+         nav
+           .search('/*/definitions/*').log()
+           .search('/*/groups').log()
+           .mapOwn(function(val, key){
+             this.groups.add(key, val);
+             return {
+               name: key,
+               data: val
+             };
+           }, this)
+          ;
+       } catch (ex) {console.log(ex);}
+       console.log(this.groups.get());
+       return this;
+     }, this);
+   },
 
     /**
      *
