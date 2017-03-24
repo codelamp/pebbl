@@ -11,7 +11,7 @@ gulp.task('prod-js', function(){
       'src/polycade._.js',
       'src/managers/polycade.assets.js',
       'src/managers/polycade.events.js',
-      'src/managers/polycade.layers.js'
+      'src/managers/polycade.screens.js'
     ])
     .pipe(concat('polycade.js'))
     .pipe(minify())

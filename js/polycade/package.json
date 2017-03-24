@@ -6,7 +6,8 @@
   "dependencies": {
     "jqlite": "^0.2.41",
     "phaser": "^2.6.2",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "defiantjs": "https://github.com/hbi99/defiant.js"
   },
   "devDependencies": {
     "gulp": "^3.9.1",

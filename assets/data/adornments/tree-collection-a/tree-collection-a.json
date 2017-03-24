@@ -1,0 +1,102 @@
+{
+  "id": "data://adornments/tree-collection-a/tree-collection-a.json",
+  "definitions": {
+
+    "tree-square": {
+      "id": "#tree-square",
+      "sprite": {
+        "source": {
+          "@ref": "tree-square.png"
+        },
+        "position": { "x":0, "y":0 },
+        "anchor": { "x":0.5, "y":1 }
+      },
+      "body": {
+        "collideWorldBounds": false,
+        "immovable": true,
+        "allowGravity": false
+      },
+      "p2": {
+        "source": { "@ref": "tree-collection-a.p2.json#tree-square" }
+      },
+      "ibody": {
+        "source": { "@ref": "tree-square.ibody.json" },
+        "shadowCatcher": true
+      },
+      "shadow": {
+        "source": {
+          "@ref": "data://shadows/images/round-shadow.png"
+        },
+        "anchor": { "x":0.4, "y":0.5 },
+        "alpha": 0.3,
+        "baseAlpha": 0.3,
+        "scale": { "y":0.2 }
+      }
+    },
+
+    "tree-round-trio": {
+      "id": "#tree-round-trio",
+      "sprite": {
+        "source": {
+          "@ref": "tree-round-trio.png"
+        },
+        "position": { "x":0, "y":0 },
+        "anchor": { "x":0.5, "y":1 }
+      },
+      "body": {
+        "collideWorldBounds": false,
+        "immovable": true,
+        "allowGravity": false
+      },
+      "p2": {
+        "source": { "@ref": "tree-collection-a.p2.json#tree-round-trio" }
+      },
+      "ibody": {
+        "source": { "@ref": "tree-round-trio.ibody.json" },
+        "shadowCatcher": true
+      },
+      "shadow": {
+        "source": {
+          "@ref": "data://shadows/images/round-shadow.png"
+        },
+        "anchor": { "x":0.4, "y":0.5 },
+        "alpha": 0.3,
+        "baseAlpha": 0.3,
+        "scale": { "y":0.2 }
+      }
+    },
+
+    "tree-round-duo": {
+      "id": "#tree-round-duo",
+      "sprite": {
+        "source": {
+          "@ref": "tree-round-duo.png"
+        },
+        "position": { "x":0, "y":0 },
+        "anchor": { "x":0.5, "y":1 }
+      },
+      "body": {
+        "collideWorldBounds": false,
+        "immovable": true,
+        "allowGravity": false
+      },
+      "p2": {
+        "source": { "@ref": "tree-collection-a.p2.json#tree-round-duo" }
+      },
+      "ibody": {
+        "source": { "@ref": "tree-round-duo.ibody.json" },
+        "shadowCatcher": true
+      },
+      "shadow": {
+        "source": {
+          "@ref": "data://shadows/images/round-shadow.png"
+        },
+        "anchor": { "x":0.4, "y":0.5 },
+        "alpha": 0.3,
+        "baseAlpha": 0.3,
+        "scale": { "y":0.2 }
+      }
+    }
+
+  }
+}

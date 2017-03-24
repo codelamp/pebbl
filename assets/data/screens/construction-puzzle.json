@@ -1,0 +1,42 @@
+{
+  "id": "data://screens/construction-puzzle.json",
+  "definitions": {
+
+    "screen": {
+      "groups": {
+
+        "default": {
+          "items": [
+            { "@ref" : "data://adornments/globe-a/globe-a.json#globe-default" },
+            { "@ref" : "items/tree-square" },
+            { "@ref" : "items/tree-round-trio" },
+            { "@ref" : "items/tree-round-duo" },
+            { "@ref" : "items/rock" }
+          ]
+        }
+
+      },
+      "items": {
+
+        "tree-square": [
+          { "@ref" : "data://adornments/tree-collection-a/tree-collection-a.json#tree-square" },
+          { "position" : { "x":0, "y":0 } }
+        ],
+        "tree-round-duo": [
+          { "@ref" : "data://adornments/tree-collection-a/tree-collection-a.json#tree-round-duo" },
+          { "position" : { "x":0, "y":0 } }
+        ],
+        "tree-round-trio": [
+          { "@ref" : "data://adornments/tree-collection-a/tree-collection-a.json#tree-round-trio" },
+          { "position" : { "x":0, "y":0 } }
+        ],
+        "rock": [
+          { "@ref" : "data://adornments/rock-collection-a/rock-collection-a.json#rock-a" },
+          { "position" : { "x":0, "y":0 } }
+        ]
+
+      }
+    }
+
+  }
+}

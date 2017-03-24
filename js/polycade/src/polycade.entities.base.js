@@ -1,60 +1,38 @@
 /**
  * The trigger manager for polycade
  */
-async('polycade.entities.base', ['jq', 'Phaser', 'theory'], function($, Phaser, t){
+async('polycade.entities.base', ['jq', 'Phaser', 'theory', 'underscore'], function($, Phaser, t, _){
 
   var polycade = async.ref('polycade', {});
       polycade.entities = polycade.entites || {};
   var base = polycade.entities.base || {};
+  var u = undefined;
 
   /**
-   * adornment entity
+   * Create a polycade extended sprite
+   */
+  polycade.phaser = {};
+  polycade.phaser.sprite = function(entity, x, y, source){
+    Phaser.Sprite.call(this, entity.phaser, x, y, source);
+    this.polycade = entity;
+  };
+  polycade.phaser.sprite.prototype = Object.create(Phaser.Sprite.prototype);
+  polycade.phaser.sprite.prototype.constructor = polycade.phaser.sprite;
+
+  /**
+   * entity base
    */
   polycade.entities.base = t.base.mix(base, {
 
     prep: function( options ){
 
-      var sprite, body, ibody, u = undefined;
-
       this.options = options;
       this.vars = {};
       
-      sprite = this.options.sprite;
-      body = this.options.body;
-      ibody = this.options.ibody;
-      
-      if ( sprite ) {
-        this.sprite = this.phaser.add.sprite(
-          this.options.sprite.position.x,
-          this.options.sprite.position.y,
-          this.options.sprite.source
-        );
-        this.position = this.sprite.position;
-        (sprite.anchor !== u)             && (this.sprite.anchor = sprite.anchor);
-        (sprite.blendMode !== u)          && (this.sprite.blendMode = sprite.blendMode);
-        if ( body ) {
-          this.phaser.physics.enable(this.sprite, Phaser.Physics.ARCADE);
-          (body.collideWorldBounds !== u) && (this.sprite.body.collideWorldBounds = body.collideWorldBounds);
-          (body.allowGravity !== u)       && (this.sprite.body.allowGravity = body.allowGravity);
-          (body.immovable !== u)          && (this.sprite.body.immovable = body.immovable);
-        }
-        if ( ibody ) {
-          ibody = _.clone(ibody);
-          ibody.owner = this;
-          this.sprite.ibody = polycade.imagination.body.create(ibody);
-        }
-      }
-      
-      if ( options.events ) {
-        for ( var key in options.events ) {
-          if ( !this.sprite.events[key] ) {
-            this.sprite.events[key] = new Phaser.Signal();
-          }
-          if ( this.sprite.events[key] ) {
-            this.sprite.events[key].add(t.bind(options.events[key], this));
-          }
-        }
-      }
+      options.sprite && this.prepSprite(options.sprite);
+      options.body   && this.prepBody(options.body);
+      options.ibody  && this.prepiBody(options.ibody);
+      options.events && this.prepEvents(options.events);
       
       this.sprite.events.added && this.sprite.events.added.dispatch();
       
@@ -62,6 +40,55 @@ async('polycade.entities.base', ['jq', 'Phaser', 'theory'], function($, Phaser, 
       //this.options.update && this.on('update', this.options.update);
       //this.options.resize && this.on('resize', this.options.resize);
     
+    },
+    
+    /**
+     *
+     */
+    prepSprite: function(options){
+      this.sprite = new polycade.phaser.sprite(
+        this,
+        options.position.x,
+        options.position.y,
+        options.source
+      );
+      this.phaser.add.existing(this.sprite);
+      this.position = this.sprite.position;
+      (options.anchor !== u)             && (this.sprite.anchor = options.anchor);
+      (options.blendMode !== u)          && (this.sprite.blendMode = options.blendMode);
+    },
+    
+    /**
+     *
+     */
+    prepBody: function(options){
+      this.phaser.physics.enable(this.sprite, Phaser.Physics.ARCADE);
+      (options.collideWorldBounds !== u) && (this.sprite.body.collideWorldBounds = options.collideWorldBounds);
+      (options.allowGravity !== u)       && (this.sprite.body.allowGravity = options.allowGravity);
+      (options.immovable !== u)          && (this.sprite.body.immovable = options.immovable);
+    },
+
+    /**
+     *
+     */
+    prepiBody: function(options){
+      ibody = _.clone(options);
+      ibody.owner = this;
+      this.sprite.ibody = polycade.imagination.body.create(options);
+    },
+
+    /**
+     *
+     */
+    prepEvents: function(options){
+      for ( var key in options ) {
+        if ( !this.sprite.events[key] ) {
+          this.sprite.events[key] = new Phaser.Signal();
+        }
+        if ( this.sprite.events[key] ) {
+          this.sprite.events[key].add(t.bind(options[key], this));
+        }
+      }
     },
 
     update: function(){

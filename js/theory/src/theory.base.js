@@ -59,7 +59,6 @@ async('theory.base', ['underscore'], function(_){
      * When creating under a new namespace, we only wish to reset certain things
      */
     prepNS: function(){
-      this.is = {};
       this.shared = {
         namespaces: {}
       };

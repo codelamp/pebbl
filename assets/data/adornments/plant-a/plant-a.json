@@ -1,0 +1,68 @@
+{
+  "id": "data://adornments/plant-a/plant-a.json",
+  "definitions": {
+
+    "plant": {
+      "id": "#plant-small",
+      "sprite": {
+        "source": {
+          "@ref": "plant-small.png"
+        },
+        "position": { "x":0, "y":0 },
+        "anchor": { "x":0.5, "y":1 }
+      },
+      "body": {
+        "collideWorldBounds": false,
+        "immovable": true,
+        "allowGravity": false
+      },
+      "ibody": {
+        "source": {
+          "@ref": "plant-small.ibody.json"
+        },
+        "shadowCatcher": true
+      },
+      "shadow": {
+        "source": {
+          "@ref": "data://shadows/images/round-shadow.png"
+        },
+        "anchor": { "x":0.4, "y":0.5 },
+        "alpha": 0.3,
+        "baseAlpha": 0.3,
+        "scale": { "y":0.2 }
+      }
+    },
+
+    "plant-fully-grown": {
+      "id": "#plant-fully-grown",
+      "sprite": {
+        "source": {
+          "@ref": "plant-fully-grown.png"
+        },
+        "position": { "x":0, "y":0 },
+        "anchor": { "x":0.5, "y":1 }
+      },
+      "body": {
+        "collideWorldBounds": false,
+        "immovable": true,
+        "allowGravity": false
+      },
+      "ibody": {
+        "source": {
+          "@ref": "plant-fully-grown.ibody.json"
+        },
+        "shadowCatcher": true
+      },
+      "shadow": {
+        "source": {
+          "@ref": "data://shadows/images/round-shadow.png"
+        },
+        "anchor": { "x":0.4, "y":0.5 },
+        "alpha": 0.3,
+        "baseAlpha": 0.3,
+        "scale": { "y":0.2 }
+      }
+    }
+
+  }
+}

@@ -1,8 +1,16 @@
 {
-  "layers": {
-    "layer1": {
+  "groups": {
+
+    "group1": {
+
+      "items": [
+        "globe",
+        "pebbl",
+        "plant"
+      ]
 
     }
+
   },
   "adornments": {
 
@@ -25,29 +33,11 @@
       }
     },
 
-    "pebbl": {
-      "sprite": {
-        "source": "pebble-a",
-        "position": { "x":0, "y":0 },
-        "anchor": { "x":0.5, "y":1 }
-      },
-      "body": {
-        "collideWorldBounds": false,
-        "immovable": true,
-        "allowGravity": false
-      },
-      "ibody": {
-        "source": "pebble-a",
-        "offset": { "x":1, "y":1 },
-        "shadowCatcher": true
-      }
-    },
-
     "plant": {
       "sprite": {
         "source": "plant",
-        "position": {"x":0, "y":0},
-        "anchor": {"x":0.5, "y":1}
+        "position": { "x":0, "y":0 },
+        "anchor": { "x":0.5, "y":1 }
       },
       "body": {
         "collideWorldBounds": false,
@@ -60,15 +50,16 @@
       },
       "shadow": {
         "source": "shadow",
-        "anchor": {"x":0.4, "y":0.5},
+        "anchor": { "x":0.4, "y":0.5 },
         "alpha": 0.3,
         "baseAlpha": 0.3,
-        "scale": {"y":0.2}
+        "scale": { "y":0.2 }
       }
     }
 
   },
   "collectables": {
+
     "cake": {
       "world": "world",
       "sprite": {
@@ -94,10 +85,19 @@
         "scale": {"y":0.2}
       }
     }
+
   },
   "characters": {
+
     "Salesman": {
 
     }
+
+  },
+  "puzzles": {
+    
+  },
+  "storyloops": {
+    
   }
 }

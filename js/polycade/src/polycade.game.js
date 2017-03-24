@@ -2,7 +2,7 @@
  * The polycade game handler
  */
 async.tmp.includes = ['underscore', 'jq', 'theory', 'Phaser', 'verge'];
-async.tmp.managers = ['polycade.events', 'polycade.layers', 'polycade.assets', 'polycade.entities.base'];
+async.tmp.managers = ['polycade.events', 'polycade.screens', 'polycade.assets', 'polycade.entities.base'];
 async('polycade.game', async.tmp.includes, async.tmp.managers, function(_, $, t, Phaser, v){
 
   var polycade = async.ref('polycade', {}), local = polycade.game || {};
@@ -19,9 +19,9 @@ async('polycade.game', async.tmp.includes, async.tmp.managers, function(_, $, t,
      */
     prep: function(options){
       this.options = options;
-
-      this.prepManagers();
-      this.prepViewport();
+      
+      // generate a unique id
+      this.id = t.guid();
 
       this.entities = {};
       this.entities.base = polycade.entities.base.namespace('polycade.game');
@@ -34,10 +34,23 @@ async('polycade.game', async.tmp.includes, async.tmp.managers, function(_, $, t,
       this.i = {};
       this.i.container = $(this.options.container);
 
-      // shared object
-      this.phaser = new Phaser.Game(100, 100, Phaser.AUTO, this.i.container[0], this.phaserHandlers, true);
+      // handlers
+      this.handlers = t.bindCollection(this.handlers, this);
+      this.phaserHandlers = t.bindCollection(this.phaserHandlers, this);
+
+      this.prepViewport();
+      this.prepPhaser();
+      this.prepManagers();
 
       return this;
+    },
+
+    /**
+     *
+     */
+    prepPhaser: function(){
+      // shared object
+      this.phaser = new Phaser.Game(100, 100, Phaser.AUTO, this.i.container[0], this.phaserHandlers, true);
     },
 
     /**
@@ -45,11 +58,8 @@ async('polycade.game', async.tmp.includes, async.tmp.managers, function(_, $, t,
      */
     prepManagers: function(){
       this.events = polycade.manager('events').namespace('polycade').create();
-      this.layers = polycade.manager('layers').namespace('polycade').create();
-      this.assets = polycade.manager('assets').namespace('polycade').create();
-      // handlers
-      this.handlers = t.bindCollection(this.handlers, this);
-      this.phaserHandlers = t.bindCollection(this.phaserHandlers, this);
+      this.screens = polycade.manager('screens').namespace('polycade').create({ game: this });
+      this.assets = polycade.manager('assets').namespace('polycade').create({ game: this });
     },
 
     /**
@@ -103,6 +113,10 @@ async('polycade.game', async.tmp.includes, async.tmp.managers, function(_, $, t,
 
       create: function(){
 
+        this.screens.fetch('construction-puzzle').then(function(_screen){
+          console.log(_screen);
+        });
+
         this.entities.base.game = this;
         this.entities.base.phaser = this.phaser;
 
@@ -112,7 +126,6 @@ async('polycade.game', async.tmp.includes, async.tmp.managers, function(_, $, t,
         this.bg = this.phaser.add.sprite(0,0, 'sky');
         this.bg.anchor = {x:0.5, y:0};
         this.bg.fixedToCamera = false;
-
 
         /// the globe is the main platform
         this.globe = this.entities.base.create({

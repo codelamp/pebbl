@@ -1,0 +1,25 @@
+{
+  "id": "data://adornments/globe-a/globe-a.json",
+  "definitions": {
+
+    "globe": {
+      "id": "#globe-default",
+      "sprite": {
+        "source": "globe",
+        "position": { "x":0, "y":0 },
+        "anchor": { "x":0, "y":1 }
+      },
+      "body": {
+        "collideWorldBounds": false,
+        "immovable": true,
+        "allowGravity": false
+      },
+      "ibody": {
+        "source": "globe",
+        "offset": { "x":0, "y":30 },
+        "shadowCatcher": true
+      }
+    }
+
+  }
+}

@@ -6,10 +6,11 @@ async.registry('polycade', {
     'Phaser':                      { file: 'node_modules/phaser/build/phaser.min.js',   resolve: function(){ return Phaser; } },
     'PolyK':                       { file: 'vendor/polyk/polyk.js',                     resolve: function(){ return PolyK; } },
     'verge':                       { file: 'vendor/verge/verge.min.js',                 resolve: function(){ return verge; } },
+    'defiant':                     { file: 'node_modules/defiant/dist/defiant.min.js',  resolve: function(){ return Defiant; } },
     'q':                           { resolve: function(){ return async.promiser; } },
     // polycade managers
     'polycade.events':             { file: 'src/managers/polycade.events.js', asynced: true },
-    'polycade.layers':             { file: 'src/managers/polycade.layers.js', asynced: true },
+    'polycade.screens':            { file: 'src/managers/polycade.screens.js', asynced: true },
     'polycade.assets':             { file: 'src/managers/polycade.assets.js', asynced: true },
     // polycade core
     'polycade.game':               { file: 'src/polycade.game.js',   asynced: true },
@@ -24,16 +25,17 @@ async.registry('polycade', {
     'Phaser':                      { file: 'node_modules/phaser/build/phaser.min.js',   resolve: function(){ return Phaser; } },
     'PolyK':                       { file: 'vendor/polyk/polyk.js',                     resolve: function(){ return PolyK; } },
     'verge':                       { file: 'vendor/verge/verge.min.js',                 resolve: function(){ return verge; } },
+    'defiant':                     { file: 'node_modules/defiant/dist/defiant.min.js',  resolve: function(){ return Defiant; } },
     'q':                           { resolve: function(){ return async.promiser; } },
     // polycade managers
     'polycade.events':             { asynced: true },
-    'polycade.layers':             { asynced: true },
+    'polycade.screens':            { asynced: true },
     'polycade.assets':             { asynced: true },
     // polycade core
     'polycade.game':               { asynced: true },
     'polycade.entities.base':      { asynced: true },
     'polycade.entities.adornment': { asynced: true },
-    'polycade.imagination.body':   { asynced: true },
+    'polycade.imagination.body':   { asynced: true }
   }
 });
 
