@@ -4,6 +4,7 @@
 
     "plant": {
       "id": "#plant-small",
+      "type": "adornment",
       "sprite": {
         "source": {
           "@ref": "plant-small.png"
@@ -35,6 +36,7 @@
 
     "plant-fully-grown": {
       "id": "#plant-fully-grown",
+      "type": "adornment",
       "sprite": {
         "source": {
           "@ref": "plant-fully-grown.png"

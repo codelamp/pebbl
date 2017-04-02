@@ -79,3 +79,58 @@ Really you often need both situations when coding, so a solution somewhere down 
 - A subobject that is different per each instance, but has the same prototype
 - a subobject that can be given an instance on a per "type implementation" i.e. I add a
   grouped event handler for characters, but a different one for landscape items.
+
+
+## Whilst implementing Polycade
+
+In Polycade there are a number of objects that rely on sub-objects, parent objects, and also delegate to other objects that we have no control over.
+
+As an example, the following is a choice over how things can be implemented:
+
+- When implementing the 'handlers' sub-objects, any methods found within will not have the correct context.
+- To fix this, we can re-bind those functions for each created instance.
+- This has the benefit of not adding proprietarily named properties to the sub objects.
+- You can also use `this.` inside the function to refer to the owning instance.
+- This however requires pre-processing and also means that if you use the methods in other context they would need to be rebound.
+
+Example:
+
+    {
+      prep: function(){
+        this.handlers = t.bindCollection(this.handlers, this);
+      },
+      handlers: {
+        collection: {
+          update: {
+            this.handlers.collection.update;
+          }
+        }
+      }
+    }
+
+Another approach:
+
+- When prepping an instance, we could instead just Object.create each level of sub-object
+- We could then attach a property that points back to the parent instance.
+- The downside to this approach is that inside the handers `this.i.` would have to be used, rather than `this.`
+- The benefits of this approach are that the current operating instance can be switched out entirely.
+- You can also easily reset any instance by deleting its `i` property.
+
+For example:
+
+    {
+      prep: function(){
+        this.i = Object.create(this);
+        // this could be implemented automatically without specifying sub-objects by name
+        this.i.handlers = Object.create(this.handlers);
+        this.i.handlers.self = this.i;
+        this.i.handlers.collection.self = this.i;
+      },
+      handlers: {
+        collection: {
+          update: {
+            this.i.handlers.collection.update;
+          }
+        }
+      }
+    }

@@ -286,7 +286,6 @@ async.def = function(name){
   // if there may have been dependencies, handle triggering the resolution of them
   // resolve the dependency chain for definintion
   stored.q = stored.q.then(function(){
-    console.log(stored.def, 'HERE!!!', stored.dependencies);
     if ( stored.dependencies ) {
       if ( async.log ) {
         var log = {};

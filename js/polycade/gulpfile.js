@@ -4,7 +4,9 @@ var concat = require('gulp-concat');
 
 gulp.task('prod-js', function(){
   return gulp.src([
+      'src/polycade.base.js',
       'src/polycade.entities.base.js',
+      'src/polycade.entities.shadow.js',
       'src/polycade.entities.adornment.js',
       'src/polycade.game.js',
       'src/polycade.imagination.body.js',

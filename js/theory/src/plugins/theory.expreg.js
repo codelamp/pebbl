@@ -38,6 +38,7 @@ async('theory.plugins.expreg', ['theory'], function(theory){
           return new ExpReg(re, haystack);
         }
       }
+      return this;
     };
 
     // provide some addition functions
@@ -129,7 +130,7 @@ async('theory.plugins.expreg', ['theory'], function(theory){
       /// reset and scan
       this.exp.single.lastIndex = 0;
       this.exp.multiple.lastIndex = 0;
-    },
+    };
     /*
      * Find the next item as per the internal .lastIndex pointer
      */
@@ -160,7 +161,8 @@ async('theory.plugins.expreg', ['theory'], function(theory){
     ExpReg.prototype.finding = function(){
       this.find();
       return this.matched;
-    }
+    };
+    
     /*
      * Shortcut function -- which is actually the same length
      * as typing .find().replace()
@@ -174,6 +176,7 @@ async('theory.plugins.expreg', ['theory'], function(theory){
         return result;
       }
     };
+    
     /*
      * Find all items in one fell swoop
      */
@@ -311,8 +314,8 @@ async('theory.plugins.expreg', ['theory'], function(theory){
         else {
           return false;
         }
-      }
-      iter.reset = function(){self.reset();}
+      };
+      iter.reset = function(){self.reset();};
       return iter;
     };
     /*
@@ -444,5 +447,10 @@ async('theory.plugins.expreg', ['theory'], function(theory){
     return ExpReg;
 
   })(theory.plugins.expreg);
+
+  //
+  t.ExpReg = theory.plugins.expreg;
+
+  return theory.plugins.expreg;
 
 });

@@ -7,32 +7,105 @@
 
         "default": {
           "items": [
+            { "@ref" : "data://adornments/globe-a/globe-a.json#globe-sky" },
             { "@ref" : "data://adornments/globe-a/globe-a.json#globe-default" },
-            { "@ref" : "items/tree-square" },
-            { "@ref" : "items/tree-round-trio" },
-            { "@ref" : "items/tree-round-duo" },
-            { "@ref" : "items/rock" }
+            { "@ref" : "#/definitions/screen/items/rock" },
+            { "@ref" : "#/definitions/screen/items/tree-square" },
+            { "@ref" : "#/definitions/screen/items/tree-round-trio" },
+            { "@ref" : "#/definitions/screen/items/tree-round-duo" }
           ]
         }
 
       },
       "items": {
 
+        "rock": [
+          { "@ref" : "data://adornments/rock-collection-a/rock-collection-a.json#rock-a" },
+          { "sprite": {
+            "position" : {
+              "on": "resize",
+              "x": {
+                "function": "percent",
+                "value": 0.5,
+                "anchor": 0
+              },
+              "y": {
+                "function": "percent",
+                "value": 0.88,
+                "anchor": 0
+              }
+            },
+            "scale": {
+              "x": 0.5,
+              "y": 0.5
+            }
+          } }
+        ],
         "tree-square": [
           { "@ref" : "data://adornments/tree-collection-a/tree-collection-a.json#tree-square" },
-          { "position" : { "x":0, "y":0 } }
+          { "sprite": {
+            "position" : {
+              "on": "resize",
+              "x": {
+                "function": "percent",
+                "value": 0.8,
+                "anchor": 0
+              },
+              "y": {
+                "function": "percent",
+                "value": 0.75,
+                "anchor": 0
+              }
+            },
+            "scale": {
+              "x": 0.4,
+              "y": 0.4
+            }
+          }, "shadow": { "caster": true }, "ibody": { "disabled": true } }
         ],
         "tree-round-duo": [
           { "@ref" : "data://adornments/tree-collection-a/tree-collection-a.json#tree-round-duo" },
-          { "position" : { "x":0, "y":0 } }
+          { "sprite": {
+            "position" : {
+              "on": "resize",
+              "x": {
+                "function": "percent",
+                "value": 0.3,
+                "anchor": 0
+              },
+              "y": {
+                "function": "percent",
+                "value": 0.74,
+                "anchor": 0
+              }
+            },
+            "scale": {
+              "x": 0.4,
+              "y": 0.4
+            }
+          }, "ibody": { "disabled": true } }
         ],
         "tree-round-trio": [
           { "@ref" : "data://adornments/tree-collection-a/tree-collection-a.json#tree-round-trio" },
-          { "position" : { "x":0, "y":0 } }
-        ],
-        "rock": [
-          { "@ref" : "data://adornments/rock-collection-a/rock-collection-a.json#rock-a" },
-          { "position" : { "x":0, "y":0 } }
+          { "sprite": {
+            "position" : {
+              "on": "resize",
+              "x": {
+                "function": "percent",
+                "value": 0.7,
+                "anchor": 0
+              },
+              "y": {
+                "function": "percent",
+                "value": 0.83,
+                "anchor": 0
+              }
+            },
+            "scale": {
+              "x": 0.4,
+              "y": 0.4
+            }
+          }, "ibody": { "disabled": true } }
         ]
 
       }

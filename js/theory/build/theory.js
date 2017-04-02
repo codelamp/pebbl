@@ -334,6 +334,27 @@ async('theory.is', function(){
        */
       towel: function(item){
         return item === 42;
+      },
+    
+      /**
+       * Check to see if the type of a variable matches another
+       *
+       * @static
+       * @method is.matchingType
+       * @param {any} a
+       * @param {any} b
+       * @return {Boolean} returns true if the types of a and b match
+       */
+      matchingType: function(a, b){
+        if ( Object.getPrototypeOf ) {
+          return Object.getPrototypeOf(a) === Object.getPrototypeOf(b);
+        }
+        else if ( a.__proto__ ) {
+          return a.__proto__ === b.__proto__;
+        }
+        else {
+          return is.what.type(a) === is.what.type(b);
+        }
       }
 
     };
@@ -717,7 +738,9 @@ async('theory.base', ['underscore'], function(_){
      */
     mix: function(){
       // convert to array, and insert this base object as second
-      var args = Array.prototype.slice.apply(arguments); args.splice(1, 0, this);
+      var args = Array.prototype.slice.apply(arguments);
+      !args[0] && (args[0] = {}); // fallback base object
+      args.splice(1, 0, this);
       var instance = _.extend.apply(_, args);
       instance.prepNS(); // make sure we are set up for namespaces
       return instance;
@@ -728,8 +751,8 @@ async('theory.base', ['underscore'], function(_){
      */
     create: function(){
       var instance = Object.create(this);
-      this.prep.apply(instance, arguments);
-      return instance;
+      var returned = this.prep.apply(instance, arguments);
+      return returned ? returned : instance;
     },
 
     /**
@@ -752,7 +775,6 @@ async('theory.base', ['underscore'], function(_){
      * When creating under a new namespace, we only wish to reset certain things
      */
     prepNS: function(){
-      this.is = {};
       this.shared = {
         namespaces: {}
       };
@@ -762,9 +784,20 @@ async('theory.base', ['underscore'], function(_){
     /**
      * Pass in a string-based namespace, this will create or return a new
      * wrapping instance of polycade.events().
+     *
+     * if ns isn't a string, it is treated as data and a non-named namespace
+     * is created.
      */
-    namespace: function(ns){
-      return this.shared.namespaces[ns] || (this.shared.namespaces[ns] = this.createNS(ns));
+    namespace: function(ns, data){
+      var namespace;
+      if ( _.isString(ns) ) {
+        namespace = this.shared.namespaces[ns] || (this.shared.namespaces[ns] = this.createNS());
+      }
+      else {
+        namespace = this.createNS();
+        data = ns;
+      }
+      return data ? _.extend(namespace, data) : namespace;
     }
 
   };
@@ -977,40 +1010,6 @@ async('theory', ['underscore'], ['theory.is', 'theory.has', 'theory.to', 'theory
       };
     },
 
-    /**
-     * A bit like a hybrid between clone and extend.
-     *
-     * Will work recursively switching out everything with a new reference.
-     *
-     * This code will ignore primitives.
-     *
-     * it is designed to be used to "clone" creator's internal i objects.
-     *
-     * @todo investigate the difference of behaviour been hasOwnProp and not.
-     * @todo implement clones for other types of reasonable objects i.e. Date?
-     */
-    dereference: function(a, options){
-      var i, dereference = this.dereference;
-      if ( is.object(a) ) {
-        var b = {};
-        for ( i in a ) {
-          a[i] && (b[i] = dereference.call(this, a[i]));
-        }
-        return b;
-      }
-      else if ( is.array(a) && !a.ignoreDereference ) {
-        b = [];
-        for ( i=0, l=a.length; i<l; i++ ) {
-          b[i] = a[i] ? dereference.call(this, a[i]) : a[i];
-        }
-        return b;
-      }
-      else if ( is.callable(a) ) {
-        b = function(){return a.apply(this, arguments);};
-      }
-      return a;
-    },
-
     /*
      *
      */
@@ -1088,7 +1087,7 @@ async('theory', ['underscore'], ['theory.is', 'theory.has', 'theory.to', 'theory
    *
    * @todo expose the description object in some way from the returned method, although don't call it ".description" because that interfered with the `.namespace()` code
    */
-  theory.method = function(desc, context, attribute){
+  theory.method = function(desc, context, attributes){
     var method, argsToArray = Array.prototype.slice, argsHandler;
     if ( desc.defaults ) {
       argsHandler = function(args){
@@ -1126,8 +1125,8 @@ async('theory', ['underscore'], ['theory.is', 'theory.has', 'theory.to', 'theory
     else if ( desc.overloads ) {
       method = t.overload(desc.overloads);
     }
-    if ( desc.attributes ) {
-      method = t.extend(method, desc.attributes, { overwrite: true });
+    if ( desc.attributes || attributes ) {
+      method = t.extend(method, desc.attributes || attributes, { overwrite: true });
     }
     if ( method ) {
       /// create a cloned method based on the original description
@@ -1142,6 +1141,97 @@ async('theory', ['underscore'], ['theory.is', 'theory.has', 'theory.to', 'theory
     }
     return method;
   };
+
+ /**
+  * Designed to dereference simple object structures. Akin to a 
+  * deep clone, but considering this function won't handle constructors
+  * beyond the primitive objects, it seemed fitting to name it differently.
+  *
+  * @param a
+  *   - the object to dereference, currently supports primitive objects,
+  *     arrays and functions.
+  * @param options
+  *   - options.deep = true
+  *     - will cause the dereference code to recurse deeply
+  *   - options.lookup = true
+  *     - request that the deref code records the objects it dereferences
+  *       and will return the same dereference objects.
+  *   - options.types = { "array": function(){}, "object": ... }
+  *     - change behviour from using built-in functions, to using the
+  *       is.what.type function and passed in functions under options.types
+  *       keyed by type name. For an example of the function signatures
+  *       just copy the signature under theory.dereference.handlers.
+  * @param level
+  *   - internal parameter to keep track of recursion level
+  */
+ theory.dereference = function(a, options, level){
+   var type, ai;
+   if ( !options ) { options = { deep: true }; }
+   if ( options.lookup === true ) {
+     options.lookup = {
+       list: [],
+       refs: []
+     };
+   }
+   if ( options.lookup ) {
+     if ( (ai=options.lookup.list.indexOf(a)) !== -1 ) {
+       return options.lookup.refs[ai];
+     }
+     options.lookup.list.push(a);
+   }
+   if ( !level ) { level = []; }
+   if ( options.types ) {
+     type = is.what.type(a);
+     if ( options.types[type] ) {
+       a = options.types[type].call(this, a, options, level);
+     }
+   }
+   else {
+     if ( is.array(a) ) {
+       a = this.dereference.handlers.array.call(this, a, options, level);
+     }
+     else if ( is.object(a) ) {
+       a = this.dereference.handlers.object.call(this, a, options, level);
+     }
+     else if ( is.callable(a) ) {
+       a = this.dereference.handlers.callable.call(this, a, options, level);
+     }
+     else {
+       throw new Error('unable to dereference', level);
+     }
+   }
+   if ( options.lookup ) {
+     options.lookup.refs[options.lookup.list.length-1] = a;
+   }
+   return a;
+ };
+
+ /**
+  *
+  */
+ theory.dereference.handlers = {
+   object: function(a, options, level){
+     var i, b;
+     if (is.string(a)) { return new String(a); }
+     else if ( is.element(a) ) { b = a.cloneNode(); }
+     else if (is.bool(a)) { b = new Boolean(a); }
+     else if (is.number(a)) { b = new Number(a); }
+     else { b = {}; }
+     for ( i in a ) {
+       b[i] = (options.deep && a[i] ? this.dereference.call(this, a[i], options, level.concat(i)) : a[i]);
+     }
+     return b;
+   },
+   array: function(a, options, level){
+     for ( var b = [], i=0, l=a.length; i<l; i++ ) {
+       b[i] = options.deep && a[i] ? this.dereference.call(this, a[i], options, level.concat(i)) : a[i];
+     }
+     return b;
+   },
+   callable: function(a, options, level){
+     return function(){return a.apply(this, arguments);};
+   }
+ };
 
   /**
    * Take an object and clone it shallow or deep.
@@ -1331,6 +1421,155 @@ async('theory', ['underscore'], ['theory.is', 'theory.has', 'theory.to', 'theory
       return obj;
     };
   });
+
+  /**
+   * Generate a random -- hopefully unique -- id.
+   */
+  theory.guid = function(){
+    return ('' +
+      (((1+Math.random())*0x10000)|0).toString(16).substring(1) +
+      (((1+Math.random())*0x10000)|0).toString(16).substring(1) +
+      (((1+Math.random())*0x10000)|0).toString(16).substring(1) +
+      (((1+Math.random())*0x10000)|0).toString(16).substring(1) +
+    '');
+  };
+
+
+  /**
+   * Merge b into a, with additional recursion protection
+   *
+   * @param a
+   *   - destination object, merges are copied into here
+   * @param b
+   *   - source object, information is copied from here
+   * @param options = { ... }
+   *   - control behaviour of the code
+   * @param options.fast
+   *   - skip checking if references have already been
+   *     handled. Will be faster, but will only work
+   *     correctly if you are sure the objects being
+   *     merged don't occur multiple times or have
+   *     circular references.
+   * @param options.dereference
+   *   - both a and b will be dereferenced before being
+   *     merged down, this will mean the merge should
+   *     behave as a new clone.
+   * @param seen
+   *   - internal param for tracking which objects have already
+   *     be handled.
+   * @param level
+   *   - internal parameter to keep track of recursion level
+   */
+  theory.merge = function(a, b, options, seen, level){
+    console.log(arguments);
+    var sa, sb;
+    // catch .merge being used to merged from multiple sources at level 0
+    if ( !level ) {
+      if ( !options ) { options = {}; }
+      if ( options.dereference && !options._dereference ) {
+        options._dereference = { lookup: true };
+        a = this.dereference(a, options._dereference);
+        b = this.dereference(b, options._dereference);
+      }
+      // if we have b as an array here, treat as multiple objects being merged in
+      if ( is.arraylike(b) ) {
+        for ( var i=0, l=b.length; i<l; i++ ) {
+          a = this.merge(a, b[i], options);
+        }
+        return a;
+      }
+      // set up some defaults
+      level = [];
+      seen = options.fast ? null : {a:[], b:[]};
+    }
+    // check if we've already encountered b being merged into a:
+    // - it is possible for b to be encountered many times, but be merged to a different a dest each time.
+    // @TODO: look at support for weakmaps in order to use objects as keys
+    if ( seen !== null ) {
+      if ( (sa=seen.a.indexOf(a)) != -1 ) {
+        if ( !seen.b[sa] ) {
+          seen.b[sa] = [b];
+        }
+        else if ( (sb=seen.b[sa].list.indexOf(b)) != -1 ) {
+          return a;
+        }
+        else {
+          // add this b to a's list
+          seen.b[sa].push(b);
+        }
+      }
+      else {
+        seen.a.push(a);
+      }
+    }
+    // handle if types don't match, essentially replace a with b, rather than merge
+    if ( !is.matchingType(a, b) ) {
+      // allowable mismatch, copy an array down into an object using numberic keys
+      if ( is.arraylike(b) && is.object(b[key]) ) {
+        a = this.mergeObject.call(this, a, b, options, seen, level);
+      }
+      else {
+        a = b;
+      }
+    }
+    // handle the source being an array
+    else if ( is.arraylike(b) ) {
+      a = this.mergeArray.call(this, a, b, options, seen, level);
+    }
+    // handle the source being an object
+    else if ( is.object(b) ) {
+      a = this.mergeObject.call(this, a, b, options, seen, level);
+    }
+    else {
+      a = b;
+    }
+    if ( !level && seen ) {
+      seen.a.length = 0;
+      seen.b.length = 0;
+      seen = null;
+    }
+    return a;
+  };
+  
+  /**
+   * Merge array handling used by .merge
+   */
+  theory.mergeArray = function(a, b, options, seen, level){
+    if ( options.arrayConcat ) {
+      a.concat(b);
+    }
+    else {
+      for ( var i=0, l=b.length; i<l; i++ ) {
+        a[i] = this.merge(a[i], b[i], options, seen, level.concat([i]));
+      }
+    }
+    return a;
+  };
+  
+  /**
+   * Merge object handling used by .merge
+   */
+  theory.mergeObject = function(a, b, options, seen, level){
+    for ( var key in b ) {
+      if ( !is.defined(a[key]) || options.overwrite ) {
+        a[key] = b[key];
+      }
+      else if ( is.object(b[key]) && is.object(a[key]) ) {
+        a[key] = this.merge(a[key], b[key], options, seen, level.concat([key]));
+      }
+      else {
+        a[key] = b[key];
+      }
+    }
+    return a;
+  };
+
+  /**
+   *
+   */
+  theory.mergeAndClone = function(a, b, options){
+    return this.merge(a, b, t.extend({dereference: true}, options));
+  };
 
   return theory;
 

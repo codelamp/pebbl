@@ -334,6 +334,27 @@ async('theory.is', function(){
        */
       towel: function(item){
         return item === 42;
+      },
+    
+      /**
+       * Check to see if the type of a variable matches another
+       *
+       * @static
+       * @method is.matchingType
+       * @param {any} a
+       * @param {any} b
+       * @return {Boolean} returns true if the types of a and b match
+       */
+      matchingType: function(a, b){
+        if ( Object.getPrototypeOf ) {
+          return Object.getPrototypeOf(a) === Object.getPrototypeOf(b);
+        }
+        else if ( a.__proto__ ) {
+          return a.__proto__ === b.__proto__;
+        }
+        else {
+          return is.what.type(a) === is.what.type(b);
+        }
       }
 
     };
@@ -390,7 +411,7 @@ async('theory.is', function(){
         return '[' + a.join(', ') + ']';
       }
     }
-    return is.what.type(desc);
+    return this.type ? this.type(desc) : is.what.type(desc);
   };
 
   /**
@@ -499,7 +520,7 @@ async('theory.is', function(){
     else {
       if ( (t = typeof obj) !== 'undefined' ) {
         c = obj.constructor;
-        k = is.what.types;
+        k = this.types || is.what.types;
         l = k.length;
         for (i=0; i<l; i++) {
           if ( (e=k[i]) && e.cons ) {

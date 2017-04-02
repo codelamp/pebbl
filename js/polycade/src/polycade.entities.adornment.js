@@ -4,7 +4,7 @@
 async('polycade.entities.adornment', ['jq', 'Phaser', 'theory'], function($, Phaser, theory){
 
   var polycade = async.ref('polycade', {});
-      polycade.entities = polycade.entites || {};
+      polycade.entities = polycade.entities || {};
   var adornment = polycade.entities.adornment || {};
 
   /**

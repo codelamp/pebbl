@@ -18,25 +18,25 @@ var game;
  *  3. Saving game state
  */
 
-(function(){
+async('game', ['polycade'], function(polycade){
+  
+  var config = {
+    initialScreen: 'testbed',
+    container: 'body'
+  };
 
-  async('game', ['polycade'], function(polycade, pG){
+  var ready = function(game){
+    game.events.on('test', function(){
+      console.log('Events are still working!');
+    });
+    game.events.trigger('test');
+  };
 
-    game = {
-      init: function(){
-        var g = polycade.game.create({
-          initialScreen: 'testbed',
-          container: 'body'
-        });
-        g.events.on('test', function(){
-          console.log(12312321);
-        });
-        g.events.trigger('test');
-      }
-    };
+  return {
+    init: function(){
+      //console.log(polycade.game.create(config));
+      polycade.game.create(config).then(ready);
+    }
+  };
 
-    return game;
-
-  });
-
-})();
+});

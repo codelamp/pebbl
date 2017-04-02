@@ -4,6 +4,7 @@
 
     "tree-square": {
       "id": "#tree-square",
+      "type": "adornment",
       "sprite": {
         "source": {
           "@ref": "tree-square.png"
@@ -36,6 +37,7 @@
 
     "tree-round-trio": {
       "id": "#tree-round-trio",
+      "type": "adornment",
       "sprite": {
         "source": {
           "@ref": "tree-round-trio.png"
@@ -68,6 +70,7 @@
 
     "tree-round-duo": {
       "id": "#tree-round-duo",
+      "type": "adornment",
       "sprite": {
         "source": {
           "@ref": "tree-round-duo.png"

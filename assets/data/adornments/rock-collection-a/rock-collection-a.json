@@ -1,3 +1,39 @@
 {
- 
+  "id": "data://adornments/rock-collection-a/rock-collection-a.json",
+  "definitions": {
+
+    "rock-a": {
+      "id": "#rock-a",
+      "type": "adornment",
+      "sprite": {
+        "source": {
+          "@ref": "rock-outcrop-1.png"
+        },
+        "position": { "x":0, "y":1 },
+        "anchor": { "x":0.5, "y":1 }
+      },
+      "body": {
+        "collideWorldBounds": false,
+        "immovable": true,
+        "allowGravity": false
+      },
+      "p2": {
+        "source": { "@ref": "rock-collection-a.p2.json#rock-a" }
+      },
+      "ibody": {
+        "source": { "@ref": "rock-outcrop-1.ibody.json" },
+        "shadowCatcher": true
+      },
+      "shadow": {
+        "source": {
+          "@ref": "data://shadows/images/round-shadow.png"
+        },
+        "anchor": { "x":0.4, "y":0.5 },
+        "alpha": 0.3,
+        "baseAlpha": 0.3,
+        "scale": { "y":0.2 }
+      }
+    }
+
+  }
 }
