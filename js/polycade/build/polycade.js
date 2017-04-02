@@ -17,7 +17,7 @@ async('polycade.base', ['theory'], function(t){
 /**
  * The trigger manager for polycade
  */
-async('polycade.entities.base', ['jq', 'Phaser', 'theory', 'underscore'], function($, Phaser, t, _){
+async('polycade.entities.base', ['jq', 'Phaser', 'theory', 'underscore', 'polycade.imagination.body'], function($, Phaser, t, _){
 
   var polycade = async.ref('polycade', {});
       polycade.entities = polycade.entities || {};
@@ -223,10 +223,9 @@ async('polycade.entities.base', ['jq', 'Phaser', 'theory', 'underscore'], functi
      * this gives added collision ability for use inside Arcade Physics.
      */
     prepiBody: function(options){
-      return; //// @TODO: remove
-      ibody = _.clone(options);
-      ibody.owner = this;
+      if ( options.disabled ) return;
       this.sprite.ibody = polycade.imagination.body.create(options);
+      this.sprite.ibody.debugDraw(this.phaser, this.sprite);
       return this;
     },
 
@@ -423,7 +422,7 @@ async('polycade.game', async.tmp.includes, async.tmp.managers, async.tmp.core, f
 
   var polycade = async.ref('polycade', {});
 
-  console.log(polycade.base.mix);
+  console.log('>>>>', polycade.base.mix);
 
   /**
    * The game handler for polycade
@@ -470,7 +469,7 @@ async('polycade.game', async.tmp.includes, async.tmp.managers, async.tmp.core, f
      */
     prepPhaser: function(){
       // shared object
-      this.phaser = new Phaser.Game(100, 100, Phaser.AUTO, this.i.container[0], this.phaserHandlers, true, true);
+      this.phaser = new Phaser.Game(100, 100, Phaser.AUTO, this.container[0], this.phaserHandlers, true, true);
     },
 
     prepUI: function(){
@@ -621,7 +620,7 @@ async('polycade.game', async.tmp.includes, async.tmp.managers, async.tmp.core, f
  * The code that powers the ibody handling, an extension body
  * which allows for polycode collision testing.
  */
-async('polycade.imagination.body', ['jq', 'Phaser', 'theory', 'PolyK'], function($, Phaser, theory, PolyK){
+async('polycade.imagination.body', ['underscore', 'Phaser', 'theory', 'PolyK'], function(_, Phaser, t, PolyK){
 
   var polycade = async.ref('polycade', {});
       polycade.imagination = polycade.imagination || {};
@@ -629,13 +628,41 @@ async('polycade.imagination.body', ['jq', 'Phaser', 'theory', 'PolyK'], function
   /**
    * imagination body
    */
-  polycade.imagination.body = theory.base.mix(polycade.imagination.body || {}, {
+  polycade.imagination.body = polycade.base.mix(polycade.imagination.body, {
 
     prep: function( options ){
-
+      this.options = options;
       /// http://phaser.io/docs/2.6.2/Phaser.Physics.Arcade.html#collide
       /// game.physics.collide(balls, balls, ballHitBallHandler, ballHitBallProcess, this);
 
+    },
+
+    debugDraw: function(phaser, sprite){
+      if ( this.options.source ) {
+        _.each(this.options.source.shapes, function(shape, i){
+          var gfx, poly = new Phaser.Polygon(shape.points);
+          gfx = phaser.add.graphics(sprite.position.x, sprite.position.y);
+          gfx.scale = sprite.scale;
+          gfx.alpha = 0.3;
+          gfx.beginFill(0xFF33ff);
+          gfx.drawPolygon(poly.points);
+          gfx.endFill();
+        });
+      }
+      /*
+      _.each(function(shape, i){
+        var gfx, poly = new Phaser.Polygon(shape.points);
+        gfx = phaser.add.graphics(0, 0);
+        gfx.beginFill(0xFF33ff);
+        gfx.drawPolygon(poly.points);
+        gfx.endFill();
+        
+        //this.sprite = new polycade.phaser.sprite(
+        //  this, -999, -999, options.source.cacheName ? options.source.cacheName : options.source
+        //);
+        //container
+      });
+      */
     },
 
     collide: function(){
@@ -694,7 +721,7 @@ async.registry('polycade', {
   }
 });
 
-async('polycade', ['jq', 'theory', 'underscore'], ['polycade.base'], function($, t, _){
+async('polycade', ['jq', 'theory', 'underscore'], ['polycade.base', 'polycade.game'], function($, t, _){
 
   var polycade = async.ref('polycade', {});
 
@@ -865,6 +892,13 @@ async('polycade.screens', ['underscore', 'theory', 'Phaser', 'q', 'defiant'], fu
         ;
       }, this);
       return this;
+    },
+
+    /**
+     *
+     */
+    children: function(){
+      
     },
 
     /**
@@ -1061,12 +1095,7 @@ async('polycade.screens', ['underscore', 'theory', 'Phaser', 'q', 'defiant'], fu
         .each(function(item){
           var entity = {};
           if ( item['@internal'] ) { item = item['@internal']; }
-          if ( item.join ) {
-            t.mergeMany(entity, item);
-          }
-          else {
-            t.merge(entity, item);
-          }
+          t.merge(entity, item);
           this.parseGroupItem(entity);
         }, this)
       ;
@@ -1207,12 +1236,20 @@ async('polycade.screens', ['underscore', 'theory', 'Phaser', 'q', 'defiant'], fu
      */
     'loadFromJSON.mergeExternalFragment': function(jsonRef, jsonExternal, fragment){
       if ( fragment ) {
-        var results = JSON.search(jsonExternal, '//*[id="#' + String(fragment) + '"]', true);
+        var ref = String(fragment);
+        var results = JSON.search(jsonExternal, '//*[id="#' + ref + '"]', true);
         if ( results && results[0] ) {
           _.extend(jsonRef, results[0]);
         }
         else {
-          throw new Error('unable to find fragment', fragment);
+          ref = ref.replace(/([^\/]+\-[^\/]+)/gi, '*[@d:name="$1"]/d:item');
+          var results = JSON.search(jsonExternal, '//'+ ref + '', true);
+          if ( results && results[0] ) {
+            _.extend(jsonRef, results[0]);
+          }
+          else {
+            throw new Error('unable to find fragment', fragment);
+          }
         }
       }
       else {
@@ -1343,7 +1380,7 @@ async('polycade.screens', ['underscore', 'theory', 'Phaser', 'q', 'defiant'], fu
       return {
         type: type,
         jsonRef: jsonRef,
-        path: path,
+        path: path.replace(/^\//, ''),// + '?nc=' + (new Date().getTime()),
         fragment: fragment
       };
     },
@@ -1366,7 +1403,7 @@ async('polycade.screens', ['underscore', 'theory', 'Phaser', 'q', 'defiant'], fu
         loader.onFileError.add(function(){
           reject(_screen);
         });
-        loader.json(name, 'assets/data/screens/' + name + '.json');
+        loader.json(name, 'assets/data/screens/' + name + '.json?nc=' + (new Date().getTime()));
         loader.start();
       });
     },

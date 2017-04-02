@@ -440,6 +440,28 @@ async.addScript = function(name, data){
   }
 };
 /**
+ *
+ */
+async.exportScripts = function(exportAs){
+  var i, item, list = [];
+  for ( i in async.store ) {
+    item = async.store[i];
+    if ( item && item.path ) {
+      switch ( exportAs ) {
+        case 'html':
+          list.push('<' + 'script type="text/javascript" src="' + item.path + '" />');
+        break;
+        case 'web':
+        default:
+          list.push('cp ./' + item.path + ' ./web/' + item.path );
+        break;
+      }
+    }
+  }
+  console.log(list.join("\n"));
+  return list;
+};
+/**
  * Only called for scripts that use a async() wrapper inside their definition
  *
  * - This is called for each dependency declared by an async wrapper call inside a script
