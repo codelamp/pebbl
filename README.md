@@ -12,3 +12,8 @@ Currently this repo is going to house the most up-to-date versions of both my Th
     npm run build
 
 The above will also need gulp to be installed globally.
+
+To view an instance currently on the web, please visit:
+http://pebbl.co.uk/v0.4/
+
+The above link is just testing the loader capability, and loading the hit areas.
