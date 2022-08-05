@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Test</title>
+</head>
+<body>
+<script src="clientjs.js"></script>
+<div id="output"></div>
+<script>
+
+var log = function(msg){
+  var child = document.createElement('pre');
+  child.innerHTML = JSON.stringify(msg, null, ' ');
+  document.getElementById('output').appendChild(child);
+}
+var client = new ClientJS();
+log(client.getEngine());
+log(client.getBrowserData());
+
+
+log({
+  "getOS": client.getOS(),
+  "getOSVersion": client.getOSVersion(),
+  "isWindows": client.isWindows(),
+  "isMac": client.isMac(),
+  "isLinux": client.isLinux(),
+  "isUbuntu": client.isUbuntu(),
+  "isSolaris": client.isSolaris(),
+  "getDevice": client.getDevice(),
+  "getDeviceType": client.getDeviceType(),
+  "getDeviceVendor": client.getDeviceVendor(),
+  "getCPU": client.getCPU(),
+  "isMobile": client.isMobile(),
+  "isMobileMajor": client.isMobileMajor(),
+  "isMobileAndroid": client.isMobileAndroid(),
+  "isMobileOpera": client.isMobileOpera(),
+  "isMobileWindows": client.isMobileWindows(),
+  "isMobileBlackBerry": client.isMobileBlackBerry(),
+  "isMobileIOS": client.isMobileIOS(),
+  "isIphone": client.isIphone(),
+  "isIpad": client.isIpad(),
+  "isIpod": client.isIpod(),
+  "getScreenPrint": client.getScreenPrint(),
+  "getColorDepth": client.getColorDepth(),
+  "getCurrentResolution": client.getCurrentResolution(),
+  "getAvailableResolution": client.getAvailableResolution(),
+  "getDeviceXDPI": client.getDeviceXDPI(),
+  "getDeviceYDPI": client.getDeviceYDPI(),
+  "getPlugins": client.getPlugins(),
+  "isJava": client.isJava(),
+  "getJavaVersion": client.getJavaVersion(),
+  "isFlash": client.isFlash(),
+  "getFlashVersion": client.getFlashVersion(),
+  "isSilverlight": client.isSilverlight(),
+  "getSilverlightVersion": client.getSilverlightVersion(),
+  "getMimeTypes": client.getMimeTypes(),
+  "isMimeTypes": client.isMimeTypes(),
+  "isFont": client.isFont(),
+  "getFonts": client.getFonts(),
+  "isLocalStorage": client.isLocalStorage(),
+  "isSessionStorage": client.isSessionStorage(),
+  "isCookie": client.isCookie(),
+  "getTimeZone": client.getTimeZone(),
+  "getLanguage": client.getLanguage(),
+  "getSystemLanguage": client.getSystemLanguage(),
+  "isCanvas": client.isCanvas(),
+  "getCanvasPrint": client.getCanvasPrint()
+});
+
+</script>
+</body>
+</html>
