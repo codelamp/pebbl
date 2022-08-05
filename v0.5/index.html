@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="height=800, initial-scale=1">
+<title>Pebbl ²⁰²² — Mountain</title>
+<!-- {{ dependencies //-->
+<script src="dependencies/matter.js"></script>
+<script src="dependencies/poly-decomp.js"></script>
+<script src="dependencies/nipples.js"></script>
+<script src="dependencies/lodash-debounce.js?2"></script>
+<script src="dependencies/raycast.js?5"></script>
+<script>Matter.Common.setDecomp(decomp);</script>
+<!-- }} dependencies //-->
+<!-- {{ styles //-->
+<link rel="stylesheet" href="styles/core.css?4" />
+<!-- {{ styles //-->
+</head>
+<body>
+<script>var nc = Date.now();</script>
+<!-- {{ scripts //-->
+<!-- {{ scripts:lib //-->
+<script>document.write(`<script src="lib/value-processor.js?nc=${nc}"></`+`script>`)</script>
+<script>document.write(`<script src="lib/shadow-caster.js?nc=${nc}"></`+`script>`)</script>
+<script>document.write(`<script src="lib/player.js?nc=${nc}"></`+`script>`)</script>
+<script>document.write(`<script src="lib/viewport-handler.js?nc=${nc}"></`+`script>`)</script>
+<script>document.write(`<script src="lib/static-tree.js?nc=${nc}"></`+`script>`)</script>
+<script>document.write(`<script src="lib/floating-pebble.js?nc=${nc}"></`+`script>`)</script>
+<!-- }} scripts:lib //-->
+<!-- {{ scripts:listeners //-->
+<script>document.write(`<script src="listeners/bespoke-gravity.js?nc=${nc}"></`+`script>`)</script>
+<script>document.write(`<script src="listeners/tracking-viewport.js?nc=${nc}"></`+`script>`)</script>
+<script>document.write(`<script src="listeners/resize-viewport.js?nc=${nc}"></`+`script>`)</script>
+<script>document.write(`<script src="listeners/onscreen-controls.js?nc=${nc}"></`+`script>`)</script>
+<!-- }} scripts:listeners //-->
+<!-- {{ scripts:scene //-->
+<script>document.write(`<script src="scenes/base.js?nc=${nc}"></`+`script>`)</script>
+<script>document.write(`<script src="scenes/mountain.js?nc=${nc}"></`+`script>`)</script>
+<script>document.write(`<script src="lib/core.js?nc=${nc}"></`+`script>`)</script>
+<!-- }} scripts:scene //-->
+<!-- }} scripts //-->
+</body>
+</html>
